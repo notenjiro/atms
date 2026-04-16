@@ -24,7 +24,7 @@
     "@radix-ui/react-popover": "1.1.2",
     "@radix-ui/react-select": "2.1.2",
     "@radix-ui/react-separator": "1.1.0",
-    "@radix-ui/react-slot": "1.1.0",
+    "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tabs": "1.1.1",
     "bcryptjs": "2.4.3",
     "class-variance-authority": "0.7.1",
@@ -42,6 +42,7 @@
     "zod": "3.24.1"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "22.10.2",
     "@types/react": "19.0.2",
     "@types/react-dom": "19.0.2",

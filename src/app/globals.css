@@ -41,6 +41,7 @@
   --info-foreground: 210 40% 98%;
 
   --radius: 0.75rem;
+  --font-sans: "Poppins", Arial, Helvetica, sans-serif;
 }
 
 .dark {
@@ -83,9 +84,23 @@
 }
 
 * {
-  @apply border-border;
+  box-sizing: border-box;
+  border-color: hsl(var(--border));
+}
+
+html,
+body {
+  height: 100%;
+}
+
+html {
+  font-family: var(--font-sans);
 }
 
 body {
-  @apply bg-background text-foreground antialiased;
+  margin: 0;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

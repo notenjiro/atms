@@ -1,0 +1,12 @@
+[
+  {
+    "id": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+    "email": "admin@test.com",
+    "passwordHash": "$2a$12$pTBSANpBTJ8qmRNVFZCfdOmhIw.rpQM1W6L6/dB.HHiYfJ7nmeGl2",
+    "fullName": "System Administrator",
+    "role": "admin",
+    "status": "active",
+    "createdAt": "2026-04-16T04:32:37.635Z",
+    "updatedAt": "2026-04-16T04:32:37.635Z"
+  }
+]
