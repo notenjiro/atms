@@ -1,3 +1,51 @@
 {
-  "items": []
+  "items": [
+    {
+      "id": "f6f8dab6-f8c2-4414-8918-d3d4955808af",
+      "code": "ACC-00002",
+      "projectName": "Y25: PTTOR: Support Service",
+      "customerName": "PTTOR",
+      "contractNo": "10-25-142-02-1",
+      "startDate": "2025-08-15",
+      "endDate": "2026-08-14",
+      "allocatedManDays": 500,
+      "usedManDays": 411.02368,
+      "remainingManDays": 88.97632,
+      "status": "active",
+      "note": "Test remark",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-16T07:06:33.983Z",
+      "updatedAt": "2026-04-16T09:58:05.154Z"
+    },
+    {
+      "id": "366c995b-307b-4b78-a0fc-718f1b637bc7",
+      "code": "ACC-00003",
+      "projectName": "Y25: TUG: Support Service for Non-SAP Application",
+      "customerName": "TUG",
+      "contractNo": "10-25-579-02-1",
+      "startDate": "2025-05-01",
+      "endDate": "2026-04-30",
+      "allocatedManDays": 100,
+      "usedManDays": 100,
+      "remainingManDays": 0,
+      "status": "inactive",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-16T07:08:27.336Z",
+      "updatedAt": "2026-04-16T07:08:27.336Z"
+    }
+  ]
 }

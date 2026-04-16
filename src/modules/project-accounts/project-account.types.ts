@@ -29,6 +29,7 @@ export type ProjectAccount = {
   status: ProjectAccountStatus;
   note?: string;
   alertSettings: ProjectAccountAlertSettings;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 };

@@ -46,6 +46,7 @@ export const projectAccountSchema = z.object({
   status: projectAccountStatusSchema,
   note: z.string().trim().optional(),
   alertSettings: projectAccountAlertSettingsSchema,
+  archivedAt: z.string().min(1).optional(),
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
 });
@@ -60,7 +61,10 @@ export const createProjectAccountSchema = z
     allocatedManDays: z
       .number()
       .min(0, "Allocated man-days cannot be negative."),
-    usedManDays: z.number().min(0, "Used man-days cannot be negative.").optional(),
+    usedManDays: z
+      .number()
+      .min(0, "Used man-days cannot be negative.")
+      .optional(),
     note: z.string().trim().optional(),
     alertSettings: projectAccountAlertSettingsSchema.partial().optional(),
   })

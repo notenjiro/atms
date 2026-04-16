@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import {
   Bell,
   CalendarDays,
@@ -33,7 +34,6 @@ type NavigationItem = {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
-  active?: boolean;
   disabled?: boolean;
 };
 
@@ -42,14 +42,12 @@ const primaryNavigation: NavigationItem[] = [
     label: "Dashboard",
     href: "/",
     icon: LayoutDashboard,
-    active: true,
   },
   {
     label: "Project Accounts",
-    href: "#",
+    href: "/project-accounts",
     icon: FolderKanban,
     badge: "Next",
-    disabled: true,
   },
   {
     label: "Issue Log",
@@ -87,6 +85,18 @@ const secondaryNavigation: NavigationItem[] = [
   },
 ];
 
+function isNavItemActive(pathname: string, href: string): boolean {
+  if (href === "#") {
+    return false;
+  }
+
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function AppShell({
   fullName,
   email,
@@ -95,6 +105,7 @@ export function AppShell({
   description,
   children,
 }: AppShellProps) {
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -219,6 +230,7 @@ export function AppShell({
               <div className="mt-2 space-y-1">
                 {primaryNavigation.map((item) => {
                   const Icon = item.icon;
+                  const isActive = isNavItemActive(pathname, item.href);
 
                   return (
                     <a
@@ -234,7 +246,7 @@ export function AppShell({
                       }}
                       className={cn(
                         "group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition",
-                        item.active
+                        isActive
                           ? "bg-white text-slate-950 shadow-sm"
                           : "text-slate-300 hover:bg-white/10 hover:text-white",
                         item.disabled && "cursor-not-allowed opacity-70",
@@ -245,7 +257,7 @@ export function AppShell({
                       <Icon
                         className={cn(
                           "size-5 shrink-0",
-                          item.active
+                          isActive
                             ? "text-slate-950"
                             : "text-slate-400 group-hover:text-white",
                         )}
@@ -259,7 +271,7 @@ export function AppShell({
                             <span
                               className={cn(
                                 "ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                                item.active
+                                isActive
                                   ? "bg-slate-100 text-slate-600"
                                   : "bg-white/10 text-slate-300",
                               )}

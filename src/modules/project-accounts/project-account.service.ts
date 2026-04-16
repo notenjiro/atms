@@ -2,7 +2,7 @@ import { ZodError } from "zod";
 
 import { nowIsoDateTime, todayIsoDate } from "@/lib/date";
 import { generateId, generateProjectAccountCode } from "@/lib/id";
-import { ValidationError } from "@/lib/errors";
+import { NotFoundError, ValidationError } from "@/lib/errors";
 
 import {
   addProjectAccount,
@@ -31,7 +31,7 @@ const DEFAULT_ALERT_SETTINGS: ProjectAccountAlertSettings = {
 };
 
 function roundManDays(value: number): number {
-  return Math.round(value * 100) / 100;
+  return Math.round(value * 100000) / 100000;
 }
 
 function normalizeAlertSettings(
@@ -95,16 +95,28 @@ function formatZodErrors(error: ZodError): string[] {
   );
 }
 
-export async function getProjectAccounts(): Promise<ProjectAccount[]> {
-  const items = await listProjectAccounts();
-
+function sortProjectAccounts(items: ProjectAccount[]): ProjectAccount[] {
   return [...items].sort((a, b) => {
-    if (a.status !== b.status) {
-      return a.status.localeCompare(b.status);
+    if (a.endDate !== b.endDate) {
+      return a.endDate.localeCompare(b.endDate);
     }
 
     return a.projectName.localeCompare(b.projectName);
   });
+}
+
+export async function getProjectAccounts(): Promise<ProjectAccount[]> {
+  const items = await listProjectAccounts();
+  const activeItems = items.filter((item) => !item.archivedAt);
+
+  return sortProjectAccounts(activeItems);
+}
+
+export async function getArchivedProjectAccounts(): Promise<ProjectAccount[]> {
+  const items = await listProjectAccounts();
+  const archivedItems = items.filter((item) => Boolean(item.archivedAt));
+
+  return sortProjectAccounts(archivedItems);
 }
 
 export async function getProjectAccountById(
@@ -170,6 +182,7 @@ export async function createProjectAccount(
     status: deriveStatus(endDate, remainingManDays),
     note,
     alertSettings: normalizeAlertSettings(alertSettings),
+    archivedAt: undefined,
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -223,6 +236,50 @@ export async function editProjectAccount(
     alertSettings: parsed.data.alertSettings
       ? normalizeAlertSettings(parsed.data.alertSettings)
       : existing.alertSettings,
+    updatedAt: nowIsoDateTime(),
+  };
+
+  return updateProjectAccount(updated);
+}
+
+export async function archiveProjectAccount(
+  id: string,
+): Promise<ProjectAccount> {
+  const existing = await findProjectAccountById(id);
+
+  if (!existing) {
+    throw new NotFoundError("Project account not found.");
+  }
+
+  if (existing.archivedAt) {
+    return existing;
+  }
+
+  const updated: ProjectAccount = {
+    ...existing,
+    archivedAt: nowIsoDateTime(),
+    updatedAt: nowIsoDateTime(),
+  };
+
+  return updateProjectAccount(updated);
+}
+
+export async function restoreProjectAccount(
+  id: string,
+): Promise<ProjectAccount> {
+  const existing = await findProjectAccountById(id);
+
+  if (!existing) {
+    throw new NotFoundError("Project account not found.");
+  }
+
+  if (!existing.archivedAt) {
+    return existing;
+  }
+
+  const updated: ProjectAccount = {
+    ...existing,
+    archivedAt: undefined,
     updatedAt: nowIsoDateTime(),
   };
 

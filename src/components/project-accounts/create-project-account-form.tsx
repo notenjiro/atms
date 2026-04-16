@@ -233,20 +233,20 @@ export function CreateProjectAccountForm({
               required
               type="number"
               min="0"
-              step="0.01"
+              step="0.00001"
               value={values.allocatedManDays}
               onChange={(value) => updateField("allocatedManDays", value)}
-              placeholder="100"
+              placeholder="100.00000"
             />
 
             <Field
               label="Used man-days"
               type="number"
               min="0"
-              step="0.01"
+              step="0.00001"
               value={values.usedManDays}
               onChange={(value) => updateField("usedManDays", value)}
-              placeholder="0"
+              placeholder="0.00000"
             />
           </div>
 
