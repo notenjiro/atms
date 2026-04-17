@@ -1,0 +1,178 @@
+{
+  "requests": [
+    {
+      "id": "db6a741e-42ec-4f23-9676-21128fff5318",
+      "employeeId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "employeeName": "System Administrator",
+      "leaveTypeId": "L001",
+      "leaveTypeName": "Annual Leave",
+      "startDate": "2026-04-17",
+      "endDate": "2026-04-17",
+      "startPortion": "full",
+      "endPortion": "full",
+      "totalDays": 1,
+      "status": "cancelled",
+      "approver": {
+        "role": "lead"
+      },
+      "submittedAt": "2026-04-17T00:04:48.259Z",
+      "cancelledAt": "2026-04-17T00:21:41.599Z",
+      "createdAt": "2026-04-17T00:04:48.259Z",
+      "updatedAt": "2026-04-17T00:21:41.609Z"
+    },
+    {
+      "id": "cced32b5-b43e-4d79-a6ae-d2c94ed69290",
+      "employeeId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "employeeName": "System Administrator",
+      "leaveTypeId": "L001",
+      "leaveTypeName": "Annual Leave",
+      "startDate": "2026-04-17",
+      "endDate": "2026-04-20",
+      "startPortion": "full",
+      "endPortion": "full",
+      "totalDays": 4,
+      "status": "pending",
+      "approver": {
+        "role": "lead"
+      },
+      "submittedAt": "2026-04-17T00:22:06.965Z",
+      "createdAt": "2026-04-17T00:22:06.965Z",
+      "updatedAt": "2026-04-17T00:22:06.965Z"
+    }
+  ],
+  "quotaBalances": [
+    {
+      "leaveTypeId": "L001",
+      "entitledDays": 12,
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 4,
+      "remainingDays": 8,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L003",
+      "entitledDays": 30,
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 30,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L004",
+      "entitledDays": 3,
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 3,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L005",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L006",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L007",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L008",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L009",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L010",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L011",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L012",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L013",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    },
+    {
+      "leaveTypeId": "L014",
+      "carriedForwardDays": 0,
+      "usedDays": 0,
+      "pendingDays": 0,
+      "remainingDays": 0,
+      "asOfDate": "2026-04-17",
+      "source": "manual",
+      "updatedAt": "2026-04-17T00:22:06.968Z"
+    }
+  ]
+}
