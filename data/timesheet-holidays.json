@@ -1,0 +1,175 @@
+{
+  "items": [
+    {
+      "date": "2026-01-01",
+      "name": "New Year's Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.001Z",
+      "updatedAt": "2026-04-17T07:54:25.001Z"
+    },
+    {
+      "date": "2026-02-12",
+      "name": "Makha Bucha Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.001Z",
+      "updatedAt": "2026-04-17T07:54:25.001Z"
+    },
+    {
+      "date": "2026-04-06",
+      "name": "Chakri Memorial Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.001Z",
+      "updatedAt": "2026-04-17T07:54:25.001Z"
+    },
+    {
+      "date": "2026-04-13",
+      "name": "Songkran Festival",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.001Z",
+      "updatedAt": "2026-04-17T07:54:25.001Z"
+    },
+    {
+      "date": "2026-04-14",
+      "name": "Songkran Festival",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.001Z",
+      "updatedAt": "2026-04-17T07:54:25.001Z"
+    },
+    {
+      "date": "2026-04-15",
+      "name": "Songkran Festival",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.001Z",
+      "updatedAt": "2026-04-17T07:54:25.001Z"
+    },
+    {
+      "date": "2026-05-01",
+      "name": "National Labour Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.001Z",
+      "updatedAt": "2026-04-17T07:54:25.001Z"
+    },
+    {
+      "date": "2026-05-05",
+      "name": "Coronation Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.001Z",
+      "updatedAt": "2026-04-17T07:54:25.001Z"
+    },
+    {
+      "date": "2026-05-11",
+      "name": "Visakha Bucha Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.001Z",
+      "updatedAt": "2026-04-17T07:54:25.001Z"
+    },
+    {
+      "date": "2026-06-03",
+      "name": "Queen Suthida's Birthday",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    },
+    {
+      "date": "2026-07-10",
+      "name": "Asarnha Bucha Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    },
+    {
+      "date": "2026-07-11",
+      "name": "Buddhist Lent Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    },
+    {
+      "date": "2026-07-28",
+      "name": "King Vajiralongkorn's Birthday",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    },
+    {
+      "date": "2026-08-12",
+      "name": "Queen Sirikit's Birthday / Mother's Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    },
+    {
+      "date": "2026-10-13",
+      "name": "King Bhumibol Memorial Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    },
+    {
+      "date": "2026-10-23",
+      "name": "Chulalongkorn Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    },
+    {
+      "date": "2026-12-05",
+      "name": "King Bhumibol's Birthday / Father's Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    },
+    {
+      "date": "2026-12-10",
+      "name": "Constitution Day",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    },
+    {
+      "date": "2026-12-31",
+      "name": "New Year's Eve",
+      "type": "public",
+      "isActive": true,
+      "source": "api",
+      "createdAt": "2026-04-17T07:54:25.002Z",
+      "updatedAt": "2026-04-17T07:54:25.002Z"
+    }
+  ]
+}

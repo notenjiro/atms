@@ -7,8 +7,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
+  TriangleAlert,
   XCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { LEAVE_TYPES, type LeaveRequest } from "@/modules/leave/leave.types";
@@ -184,8 +186,8 @@ export function LeavesTable({
 
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-  const [panelMessage, setPanelMessage] = useState<string | null>(null);
-  const [panelTone, setPanelTone] = useState<"success" | "error" | null>(null);
+
+  const [confirmingCancelId, setConfirmingCancelId] = useState<string | null>(null);
 
   const myItems = useMemo(
     () => items.filter((item) => item.employeeId === currentUserId),
@@ -253,12 +255,15 @@ export function LeavesTable({
     setRejectReason("");
   }
 
+  function resetCancelPanel() {
+    setConfirmingCancelId(null);
+  }
+
   function switchView(nextView: LeaveViewMode) {
     setViewMode(nextView);
     setCurrentPage(1);
-    setPanelMessage(null);
-    setPanelTone(null);
     resetRejectPanel();
+    resetCancelPanel();
     resetFilters();
   }
 
@@ -287,8 +292,6 @@ export function LeavesTable({
 
   async function handleApprove(item: LeaveRequest) {
     try {
-      setPanelMessage(null);
-      setPanelTone(null);
       setIsSubmittingId(item.id);
 
       await postAction(
@@ -297,34 +300,22 @@ export function LeavesTable({
         "Unable to approve leave request.",
       );
 
-      setPanelMessage(`Approved "${item.leaveTypeName}" successfully.`);
-      setPanelTone("success");
+      toast.success(`Approved "${item.leaveTypeName}" successfully.`);
       router.refresh();
     } catch (error) {
       console.error(error);
-      setPanelMessage(
+      toast.error(
         error instanceof Error
           ? error.message
           : "Unable to approve leave request.",
       );
-      setPanelTone("error");
     } finally {
       setIsSubmittingId(null);
     }
   }
 
   async function handleCancel(item: LeaveRequest) {
-    const confirmed = window.confirm(
-      `Cancel leave request "${item.leaveTypeName}"?`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
-      setPanelMessage(null);
-      setPanelTone(null);
       setIsSubmittingId(item.id);
 
       await postAction(
@@ -333,17 +324,16 @@ export function LeavesTable({
         "Unable to cancel leave request.",
       );
 
-      setPanelMessage(`Cancelled "${item.leaveTypeName}" successfully.`);
-      setPanelTone("success");
+      resetCancelPanel();
+      toast.success(`Cancelled "${item.leaveTypeName}" successfully.`);
       router.refresh();
     } catch (error) {
       console.error(error);
-      setPanelMessage(
+      toast.error(
         error instanceof Error
           ? error.message
           : "Unable to cancel leave request.",
       );
-      setPanelTone("error");
     } finally {
       setIsSubmittingId(null);
     }
@@ -351,14 +341,11 @@ export function LeavesTable({
 
   async function submitReject(item: LeaveRequest) {
     if (!rejectReason.trim()) {
-      setPanelMessage("Reject reason is required.");
-      setPanelTone("error");
+      toast.error("Reject reason is required.");
       return;
     }
 
     try {
-      setPanelMessage(null);
-      setPanelTone(null);
       setIsSubmittingId(item.id);
 
       await postAction(
@@ -370,17 +357,15 @@ export function LeavesTable({
       );
 
       resetRejectPanel();
-      setPanelMessage(`Rejected "${item.leaveTypeName}" successfully.`);
-      setPanelTone("success");
+      toast.success(`Rejected "${item.leaveTypeName}" successfully.`);
       router.refresh();
     } catch (error) {
       console.error(error);
-      setPanelMessage(
+      toast.error(
         error instanceof Error
           ? error.message
           : "Unable to reject leave request.",
       );
-      setPanelTone("error");
     } finally {
       setIsSubmittingId(null);
     }
@@ -490,19 +475,6 @@ export function LeavesTable({
               Pending requests appear here first, so lead users can approve or
               reject without digging through personal history.
             </p>
-          </div>
-        ) : null}
-
-        {panelMessage ? (
-          <div
-            className={[
-              "mt-4 rounded-2xl px-4 py-3 text-sm",
-              panelTone === "success"
-                ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                : "border border-rose-200 bg-rose-50 text-rose-700",
-            ].join(" ")}
-          >
-            {panelMessage}
           </div>
         ) : null}
 
@@ -636,6 +608,7 @@ export function LeavesTable({
               const canCancel =
                 item.employeeId === currentUserId && item.status === "pending";
               const isRejectingThisRow = rejectingId === item.id;
+              const isConfirmingCancelThisRow = confirmingCancelId === item.id;
 
               return (
                 <tr
@@ -709,8 +682,7 @@ export function LeavesTable({
                               onClick={() => {
                                 setRejectingId(item.id);
                                 setRejectReason("");
-                                setPanelMessage(null);
-                                setPanelTone(null);
+                                resetCancelPanel();
                               }}
                               className={getActionButtonClassName("reject")}
                             >
@@ -724,7 +696,10 @@ export function LeavesTable({
                             type="button"
                             variant="outline"
                             disabled={isBusy}
-                            onClick={() => handleCancel(item)}
+                            onClick={() => {
+                              setConfirmingCancelId(item.id);
+                              resetRejectPanel();
+                            }}
                             className={getActionButtonClassName("cancel")}
                           >
                             Cancel
@@ -786,6 +761,56 @@ export function LeavesTable({
                               onClick={resetRejectPanel}
                             >
                               Close
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {isConfirmingCancelThisRow ? (
+                        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-2">
+                              <div className="rounded-xl border border-amber-200 bg-white p-2 text-amber-700">
+                                <TriangleAlert className="size-4" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold text-amber-800">
+                                  Cancel request
+                                </p>
+                                <p className="mt-1 text-xs text-amber-700">
+                                  This will cancel the current pending leave request.
+                                </p>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={resetCancelPanel}
+                              className="rounded-lg p-1 text-amber-700 transition hover:bg-amber-100"
+                              aria-label="Close cancel panel"
+                            >
+                              <XCircle className="size-4" />
+                            </button>
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={isBusy}
+                              onClick={() => handleCancel(item)}
+                              className={getActionButtonClassName("cancel")}
+                            >
+                              {isBusy ? "Cancelling..." : "Confirm cancel"}
+                            </Button>
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              disabled={isBusy}
+                              onClick={resetCancelPanel}
+                            >
+                              Keep request
                             </Button>
                           </div>
                         </div>

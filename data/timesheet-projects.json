@@ -1,0 +1,64 @@
+{
+  "items": [
+    {
+      "id": "84102eb7-82da-41c5-9125-2c432dde7382",
+      "code": "I-1000-26-01-01",
+      "name": "Presales 2026",
+      "category": "Presales",
+      "isChargeable": false,
+      "customerName": "Internal",
+      "source": "local",
+      "isActive": true,
+      "createdAt": "2026-04-17T02:37:27.057Z",
+      "updatedAt": "2026-04-17T02:37:27.057Z"
+    },
+    {
+      "id": "33bb571b-a18b-43e3-92c3-49fb4baaf8df",
+      "code": "C-2001-26-04-11",
+      "name": "Customer Support Retainer",
+      "category": "Support",
+      "isChargeable": true,
+      "customerName": "CMC Client A",
+      "source": "local",
+      "isActive": true,
+      "createdAt": "2026-04-17T02:37:27.057Z",
+      "updatedAt": "2026-04-17T02:37:27.057Z"
+    },
+    {
+      "id": "0961f839-46e7-4b4f-a2f5-42cefd5a5265",
+      "code": "C-2002-26-04-12",
+      "name": "Application Enhancement",
+      "category": "Project",
+      "isChargeable": true,
+      "customerName": "CMC Client B",
+      "source": "local",
+      "isActive": true,
+      "createdAt": "2026-04-17T02:37:27.057Z",
+      "updatedAt": "2026-04-17T02:37:27.057Z"
+    },
+    {
+      "id": "b7c754a5-b1b8-4bd1-a28d-49965bde6292",
+      "code": "NC-3001-26-04-01",
+      "name": "Internal Improvement",
+      "category": "Internal",
+      "isChargeable": false,
+      "customerName": "Internal",
+      "source": "local",
+      "isActive": true,
+      "createdAt": "2026-04-17T02:37:27.057Z",
+      "updatedAt": "2026-04-17T02:37:27.057Z"
+    },
+    {
+      "id": "9d22371d-4cc7-4162-8ce2-7ffd2bad67a1",
+      "code": "C-2003-26-04-15",
+      "name": "Monthly Report Delivery",
+      "category": "Reporting",
+      "isChargeable": true,
+      "customerName": "CMC Client C",
+      "source": "local",
+      "isActive": true,
+      "createdAt": "2026-04-17T02:37:27.057Z",
+      "updatedAt": "2026-04-17T02:37:27.057Z"
+    }
+  ]
+}
