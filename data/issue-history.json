@@ -1,0 +1,73 @@
+{
+  "items": [
+    {
+      "id": "2f0e042f-5464-41d7-ab6f-39b0b129b4b8",
+      "issueId": "b0ecabc9-4732-432e-8ad5-f218642504fd",
+      "action": "created",
+      "actorId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "actorName": "System Administrator",
+      "createdAt": "2026-04-20T08:12:42.952Z"
+    },
+    {
+      "id": "81763927-1e77-422b-91da-9bde15b24e9a",
+      "issueId": "b0ecabc9-4732-432e-8ad5-f218642504fd",
+      "action": "status_changed",
+      "field": "status",
+      "from": "open",
+      "to": "cancelled",
+      "actorId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "actorName": "System Administrator",
+      "createdAt": "2026-04-20T08:12:46.735Z"
+    },
+    {
+      "id": "3d0002e7-1f90-4b5c-9633-172c22f324b8",
+      "issueId": "b0ecabc9-4732-432e-8ad5-f218642504fd",
+      "action": "updated",
+      "field": "title",
+      "from": "test",
+      "actorId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "actorName": "System Administrator",
+      "createdAt": "2026-04-20T08:12:46.735Z"
+    },
+    {
+      "id": "c1a0d845-1bd8-4846-a83f-32b98dd4e6b4",
+      "issueId": "b0ecabc9-4732-432e-8ad5-f218642504fd",
+      "action": "updated",
+      "field": "description",
+      "from": "test",
+      "actorId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "actorName": "System Administrator",
+      "createdAt": "2026-04-20T08:12:46.735Z"
+    },
+    {
+      "id": "184ed7c4-d565-4605-8126-b25073f3a954",
+      "issueId": "b0ecabc9-4732-432e-8ad5-f218642504fd",
+      "action": "updated",
+      "field": "priority",
+      "from": "medium",
+      "actorId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "actorName": "System Administrator",
+      "createdAt": "2026-04-20T08:12:46.735Z"
+    },
+    {
+      "id": "62679713-8b5f-426a-89de-58d5ca8c5802",
+      "issueId": "b0ecabc9-4732-432e-8ad5-f218642504fd",
+      "action": "updated",
+      "field": "source",
+      "from": "manual",
+      "actorId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "actorName": "System Administrator",
+      "createdAt": "2026-04-20T08:12:46.735Z"
+    },
+    {
+      "id": "a367627d-2ad9-46b6-a697-617274a522c6",
+      "issueId": "b0ecabc9-4732-432e-8ad5-f218642504fd",
+      "action": "updated",
+      "field": "cancelledAt",
+      "to": "2026-04-20T08:12:46.733Z",
+      "actorId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "actorName": "System Administrator",
+      "createdAt": "2026-04-20T08:12:46.735Z"
+    }
+  ]
+}

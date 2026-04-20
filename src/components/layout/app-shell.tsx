@@ -65,10 +65,9 @@ const primaryNavigation: NavigationItem[] = [
   },
   {
     label: "Issue Log",
-    href: "#",
+    href: "/issue-log",
     icon: Ticket,
-    badge: "Planned",
-    disabled: true,
+    badge: "New",
   },
   {
     label: "Reports",

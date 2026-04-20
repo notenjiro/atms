@@ -1,0 +1,22 @@
+{
+  "items": [
+    {
+      "id": "b0ecabc9-4732-432e-8ad5-f218642504fd",
+      "issueNo": "ISS-000001",
+      "customerName": "TUG",
+      "projectAccountId": "366c995b-307b-4b78-a0fc-718f1b637bc7",
+      "projectAccountCode": "ACC-00003",
+      "projectAccountName": "Y25: TUG: Support Service for Non-SAP Application",
+      "status": "cancelled",
+      "ownerName": "System Administrator",
+      "ownerEmail": "admin@test.com",
+      "reporterId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "reporterName": "System Administrator",
+      "reporterEmail": "admin@test.com",
+      "openedAt": "2026-04-20T08:12:42.944Z",
+      "createdAt": "2026-04-20T08:12:42.944Z",
+      "updatedAt": "2026-04-20T08:12:46.733Z",
+      "cancelledAt": "2026-04-20T08:12:46.733Z"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ export const dataPaths = {
   root: dataDirectory,
   users: path.join(dataDirectory, "users.json"),
   issues: path.join(dataDirectory, "issues.json"),
+  issueHistory: path.join(dataDirectory, "issue-history.json"),
   projectAccounts: path.join(dataDirectory, "project-accounts.json"),
   leaveRequests: path.join(dataDirectory, "leave-requests.json"),
   timesheets: path.join(dataDirectory, "timesheets.json"),
