@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AlertTriangle, Clock3, FolderSearch, ShieldAlert } from "lucide-react";
 
 import CreateIssueForm from "@/components/issues/create-issue-form";
 import IssuesTable, {
@@ -17,7 +18,13 @@ type IssueApiItem = {
   projectAccountId?: string;
   projectAccountCode?: string;
   projectAccountName?: string;
-  status: "open" | "in_progress" | "pending" | "resolved" | "closed" | "cancelled";
+  status:
+    | "open"
+    | "in_progress"
+    | "pending"
+    | "resolved"
+    | "closed"
+    | "cancelled";
   priority: "low" | "medium" | "high" | "critical";
   source: "manual" | "servicenow" | "email" | "phone";
   ownerName?: string;
@@ -111,17 +118,31 @@ function SummaryCard({
   value,
   helper,
   href,
+  icon,
 }: {
   title: string;
   value: number;
   helper: string;
   href?: string;
+  icon?: React.ReactNode;
 }) {
   const content = (
-    <div className="rounded-xl border bg-white p-4 transition hover:bg-gray-50">
-      <div className="text-sm font-medium text-gray-500">{title}</div>
-      <div className="mt-2 text-2xl font-semibold text-gray-900">{value}</div>
-      <div className="mt-1 text-xs text-gray-500">{helper}</div>
+    <div className="glass-panel-issue rounded-2xl p-4 transition hover:bg-white/50">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-sm font-medium text-yellow-700">{title}</div>
+          <div className="mt-2 text-2xl font-semibold text-slate-900">
+            {value}
+          </div>
+          <div className="mt-1 text-xs text-slate-500">{helper}</div>
+        </div>
+
+        {icon ? (
+          <div className="rounded-2xl border border-yellow-200 bg-yellow-50/80 p-2 text-yellow-700">
+            {icon}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 
@@ -172,86 +193,96 @@ export default async function IssueLogPage({
   }).length;
 
   return (
-    <AppShell
-      fullName={session.fullName}
-      email={session.email}
-      role={session.role}
-      title="Issue Log"
-      description="Track operational issues in one place with a local-first workflow."
-    >
-      <div className="space-y-6">
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
-          <SummaryCard
-            title="Total Issues"
-            value={issues.length}
-            helper="All issues in the local store"
-            href="/issue-log"
-          />
-          <SummaryCard
-            title="Open Issues"
-            value={openCount}
-            helper="Open, in progress, and pending"
-            href="/issue-log?status=open"
-          />
-          <SummaryCard
-            title="Resolved Issues"
-            value={resolvedCount}
-            helper="Resolved and closed"
-            href="/issue-log?status=resolved"
-          />
-          <SummaryCard
-            title="Critical Issues"
-            value={criticalCount}
-            helper="Items marked as critical priority"
-          />
-          <SummaryCard
-            title="Unassigned"
-            value={unassignedCount}
-            helper="Open issues without an owner"
-            href="/issue-log?owner=unassigned"
-          />
-          <SummaryCard
-            title="Aging 7+ Days"
-            value={agingSevenPlusCount}
-            helper="Open issues older than 7 days"
-            href="/issue-log?aging=gte7"
-          />
-        </section>
-
-        <section className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
-          <div className="space-y-4">
-            <CreateIssueForm
-              reporterId={session.userId}
-              reporterName={session.fullName}
-              reporterEmail={session.email}
+    <div className="glass-panel-issue">
+      <AppShell
+        fullName={session.fullName}
+        email={session.email}
+        role={session.role}
+        title="Issue Log"
+        description="Track operational issues in one place with a local-first workflow."
+      >
+        <div className="space-y-6">
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+            <SummaryCard
+              title="Total Issues"
+              value={issues.length}
+              helper="All issues in the local store"
+              href="/issue-log"
+              icon={<FolderSearch className="size-5" />}
             />
+            <SummaryCard
+              title="Open Issues"
+              value={openCount}
+              helper="Open, in progress, and pending"
+              href="/issue-log?status=open"
+              icon={<Clock3 className="size-5" />}
+            />
+            <SummaryCard
+              title="Resolved Issues"
+              value={resolvedCount}
+              helper="Resolved and closed"
+              href="/issue-log?status=resolved"
+              icon={<FolderSearch className="size-5" />}
+            />
+            <SummaryCard
+              title="Critical Issues"
+              value={criticalCount}
+              helper="Items marked as critical priority"
+              icon={<ShieldAlert className="size-5" />}
+            />
+            <SummaryCard
+              title="Unassigned"
+              value={unassignedCount}
+              helper="Open issues without an owner"
+              href="/issue-log?owner=unassigned"
+              icon={<AlertTriangle className="size-5" />}
+            />
+            <SummaryCard
+              title="Aging 7+ Days"
+              value={agingSevenPlusCount}
+              helper="Open issues older than 7 days"
+              href="/issue-log?aging=gte7"
+              icon={<Clock3 className="size-5" />}
+            />
+          </section>
 
-            <div className="rounded-xl border bg-white p-4">
-              <h2 className="text-lg font-semibold">Overview</h2>
-              <div className="mt-3 space-y-2 text-sm text-gray-600">
-                <p>Customers with issues: {customerCount}</p>
-                <p>
-                  Current scope: create, list, search, filter, detail, update,
-                  and history.
-                </p>
-                <p>
-                  Operational focus: assignment coverage, priority control, and
-                  aging visibility.
-                </p>
+          <section className="grid gap-6 xl:grid-cols-[380px_minmax(0,1fr)]">
+            <div className="space-y-4">
+              <CreateIssueForm
+                reporterId={session.userId}
+                reporterName={session.fullName}
+                reporterEmail={session.email}
+              />
+
+              <div className="glass-panel-issue rounded-[28px] p-4">
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Overview
+                </h2>
+                <div className="mt-3 space-y-2 text-sm text-slate-600">
+                  <p>Customers with issues: {customerCount}</p>
+                  <p>
+                    Current scope: create, list, search, filter, detail, update,
+                    and history.
+                  </p>
+                  <p>
+                    Operational focus: assignment coverage, priority control,
+                    and aging visibility.
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          <IssuesTable
-            issues={issues}
-            defaultFilters={{
-              status: filters.status,
-              owner: filters.owner,
-              aging: filters.aging,
-            }}
-          />
-        </section>
-      </div>
-    </AppShell>
+            <IssuesTable
+              issues={issues}
+              defaultFilters={{
+                status: filters.status,
+                owner: filters.owner,
+                aging: filters.aging,
+              }}
+            />
+          </section>
+        </div>
+      </AppShell>
+    </div>
   );
 }

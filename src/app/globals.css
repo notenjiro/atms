@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
+  --background: 222 24% 94%;
   --foreground: 222.2 47.4% 11.2%;
 
   --primary: 222.2 47.4% 11.2%;
@@ -21,8 +21,8 @@
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
 
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
+  --border: 214.3 22% 83%;
+  --input: 214.3 22% 83%;
   --ring: 222.2 47.4% 11.2%;
 
   --card: 0 0% 100%;
@@ -99,8 +99,317 @@ html {
 
 body {
   margin: 0;
-  background-color: hsl(var(--background));
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.42), transparent 26%),
+    radial-gradient(circle at top right, rgba(210, 220, 236, 0.32), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(230, 236, 246, 0.32), transparent 28%),
+    linear-gradient(180deg, #edf1f7 0%, #e7ecf4 100%);
   color: hsl(var(--foreground));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== base glass ===== */
+
+.glass-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.42),
+    rgba(246, 249, 253, 0.24)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 12px 28px rgba(148, 163, 184, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.52);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+}
+
+.glass-panel-strong {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.56),
+    rgba(241, 245, 251, 0.28)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  box-shadow:
+    0 18px 40px rgba(148, 163, 184, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+.glass-chip {
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 8px 18px rgba(148, 163, 184, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+.dashboard-surface {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+/* ===== theme surfaces ===== */
+
+.theme-dashboard {
+  background:
+    radial-gradient(circle at top right, rgba(210, 220, 236, 0.18), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.2), transparent 28%);
+}
+
+.theme-project-accounts {
+  background:
+    radial-gradient(circle at top right, rgba(221, 214, 254, 0.36), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(243, 232, 255, 0.28), transparent 28%),
+    linear-gradient(180deg, rgba(248, 245, 255, 0.42), rgba(242, 237, 255, 0.18));
+}
+
+.theme-leave {
+  background:
+    radial-gradient(circle at top right, rgba(253, 230, 138, 0.34), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(254, 243, 199, 0.26), transparent 28%),
+    linear-gradient(180deg, rgba(255, 251, 235, 0.4), rgba(255, 247, 237, 0.16));
+}
+
+.theme-timesheet {
+  background:
+    radial-gradient(circle at top right, rgba(187, 247, 208, 0.32), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(220, 252, 231, 0.24), transparent 28%),
+    linear-gradient(180deg, rgba(240, 253, 244, 0.38), rgba(236, 253, 245, 0.14));
+}
+
+.theme-issue-log {
+  background:
+    radial-gradient(circle at top right, rgba(254, 240, 138, 0.34), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(254, 249, 195, 0.26), transparent 28%),
+    linear-gradient(180deg, rgba(254, 252, 232, 0.38), rgba(254, 249, 195, 0.14));
+}
+
+.theme-report {
+  background:
+    radial-gradient(circle at top right, rgba(251, 207, 232, 0.34), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(252, 231, 243, 0.26), transparent 28%),
+    linear-gradient(180deg, rgba(253, 242, 248, 0.38), rgba(252, 231, 243, 0.14));
+}
+
+.theme-calendar {
+  background:
+    radial-gradient(circle at top right, rgba(191, 219, 254, 0.34), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(224, 242, 254, 0.26), transparent 28%),
+    linear-gradient(180deg, rgba(239, 246, 255, 0.4), rgba(224, 242, 254, 0.14));
+}
+
+.glass-panel-project {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.46),
+    rgba(244, 238, 255, 0.26)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.56);
+  box-shadow:
+    0 14px 30px rgba(168, 139, 250, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-chip-project {
+  background: rgba(243, 232, 255, 0.52);
+  border: 1px solid rgba(233, 213, 255, 0.7);
+  box-shadow:
+    0 8px 18px rgba(168, 139, 250, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+.glass-panel-leave {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.44),
+    rgba(255, 247, 237, 0.28)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 14px 30px rgba(251, 146, 60, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-chip-leave {
+  background: rgba(255, 237, 213, 0.56);
+  border: 1px solid rgba(254, 215, 170, 0.72);
+  box-shadow:
+    0 8px 18px rgba(251, 146, 60, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+.glass-panel-timesheet {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.44),
+    rgba(236, 253, 245, 0.28)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 14px 30px rgba(34, 197, 94, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-chip-timesheet {
+  background: rgba(220, 252, 231, 0.58);
+  border: 1px solid rgba(187, 247, 208, 0.72);
+  box-shadow:
+    0 8px 18px rgba(34, 197, 94, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+.glass-panel-issue {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.46),
+    rgba(254, 252, 232, 0.28)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 14px 30px rgba(234, 179, 8, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-chip-issue {
+  background: rgba(254, 249, 195, 0.58);
+  border: 1px solid rgba(253, 224, 71, 0.5);
+  box-shadow:
+    0 8px 18px rgba(234, 179, 8, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+.glass-panel-report {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.46),
+    rgba(253, 242, 248, 0.28)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 14px 30px rgba(236, 72, 153, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-chip-report {
+  background: rgba(252, 231, 243, 0.58);
+  border: 1px solid rgba(244, 114, 182, 0.4);
+  box-shadow:
+    0 8px 18px rgba(236, 72, 153, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+.glass-panel-calendar {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.46),
+    rgba(239, 246, 255, 0.28)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 14px 30px rgba(59, 130, 246, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-chip-calendar {
+  background: rgba(219, 234, 254, 0.58);
+  border: 1px solid rgba(96, 165, 250, 0.4);
+  box-shadow:
+    0 8px 18px rgba(59, 130, 246, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+/* ===== NOTIFICATION (RED THEME) ===== */
+
+.theme-notification {
+  background:
+    radial-gradient(circle at top right, rgba(254, 202, 202, 0.34), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(254, 226, 226, 0.26), transparent 28%),
+    linear-gradient(180deg, rgba(254, 242, 242, 0.4), rgba(254, 226, 226, 0.14));
+}
+
+.glass-panel-notification {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.46),
+    rgba(254, 242, 242, 0.28)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 14px 30px rgba(239, 68, 68, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-chip-notification {
+  background: rgba(254, 226, 226, 0.58);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  box-shadow:
+    0 8px 18px rgba(239, 68, 68, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+/* ===== SETTINGS (RUST / COPPER PASTEL) ===== */
+
+.theme-settings {
+  background:
+    radial-gradient(circle at top right, rgba(251, 191, 163, 0.34), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(254, 215, 170, 0.26), transparent 28%),
+    linear-gradient(180deg, rgba(255, 247, 237, 0.4), rgba(254, 226, 226, 0.14));
+}
+
+.glass-panel-settings {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.46),
+    rgba(255, 237, 213, 0.28)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 14px 30px rgba(194, 65, 12, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.glass-chip-settings {
+  background: rgba(254, 215, 170, 0.58);
+  border: 1px solid rgba(251, 146, 60, 0.4);
+  box-shadow:
+    0 8px 18px rgba(194, 65, 12, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
 }

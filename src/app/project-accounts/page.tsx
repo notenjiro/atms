@@ -61,16 +61,16 @@ function SummaryCard({
   hint?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
+    <div className="glass-panel-project rounded-[24px] px-4 py-4">
+      <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-violet-500">
         {title}
       </p>
-      <div className="mt-2 flex items-end justify-between gap-3">
+      <div className="mt-3 flex items-end justify-between gap-3">
         <p className="text-2xl font-semibold leading-none text-slate-900">
           {value}
         </p>
         {hint ? (
-          <p className="text-xs font-medium text-slate-400">{hint}</p>
+          <p className="text-xs font-medium text-violet-400">{hint}</p>
         ) : null}
       </div>
     </div>
@@ -90,32 +90,34 @@ export default async function ProjectAccountsPage() {
   const items = [...activeItems, ...archivedItems];
 
   return (
-    <AppShell
-      fullName={session.fullName}
-      email={session.email}
-      role={session.role}
-      title="Project Accounts"
-      description="Manage contracts, track man-day usage, and monitor support coverage."
-    >
-      <div className="space-y-5">
-        <CreateProjectAccountForm />
+    <div className="glass-panel-project">
+      <AppShell
+        fullName={session.fullName}
+        email={session.email}
+        role={session.role}
+        title="Project Accounts"
+        description="Manage contracts, track man-day usage, and monitor support coverage."
+      >
+        <div className="space-y-5">
+          <CreateProjectAccountForm />
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <SummaryCard title="Total Accounts" value={summary.total} />
-          <SummaryCard title="Active Contracts" value={summary.active} />
-          <SummaryCard
-            title="Expiring Soon"
-            value={summary.expiringSoon}
-            hint="≤ 30 days"
-          />
-          <SummaryCard
-            title="Remaining Man-days"
-            value={formatEffort(summary.totalRemaining)}
-          />
-        </section>
+          <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <SummaryCard title="Total Accounts" value={summary.total} />
+            <SummaryCard title="Active Contracts" value={summary.active} />
+            <SummaryCard
+              title="Expiring Soon"
+              value={summary.expiringSoon}
+              hint="≤ 30 days"
+            />
+            <SummaryCard
+              title="Remaining Man-days"
+              value={formatEffort(summary.totalRemaining)}
+            />
+          </section>
 
-        <ProjectAccountsTable items={items} />
-      </div>
-    </AppShell>
+          <ProjectAccountsTable items={items} />
+        </div>
+      </AppShell>
+    </div>
   );
 }

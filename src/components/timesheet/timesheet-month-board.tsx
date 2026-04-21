@@ -174,7 +174,10 @@ function toIsoDate(year: number, month: number, day: number): string {
   return `${year}-${`${month}`.padStart(2, "0")}-${`${day}`.padStart(2, "0")}`;
 }
 
-function getMonthDateRange(monthKey: string): { fromDate: string; toDate: string } {
+function getMonthDateRange(monthKey: string): {
+  fromDate: string;
+  toDate: string;
+} {
   const [year, month] = monthKey.split("-").map(Number);
   const lastDay = new Date(year, month, 0).getDate();
 
@@ -184,7 +187,11 @@ function getMonthDateRange(monthKey: string): { fromDate: string; toDate: string
   };
 }
 
-function getWeekdayShortLabel(year: number, month: number, day: number): string {
+function getWeekdayShortLabel(
+  year: number,
+  month: number,
+  day: number,
+): string {
   return new Date(year, month - 1, day)
     .toLocaleDateString("en-US", { weekday: "short" })
     .slice(0, 2)
@@ -248,7 +255,11 @@ function getEmptyTaskRowId(projectCode: string): string {
   return `${projectCode.trim().toLowerCase()}::__empty__`;
 }
 
-function getRowStableId(projectCode: string, taskName: string, index: number): string {
+function getRowStableId(
+  projectCode: string,
+  taskName: string,
+  index: number,
+): string {
   const normalizedTask = taskName.trim().toLowerCase();
 
   if (!normalizedTask) {
@@ -323,7 +334,9 @@ function extractHolidayItems(result: HolidaysResponse): HolidayItem[] {
   return result.items ?? result.data?.items ?? [];
 }
 
-function extractLeaveRequests(result: LeaveBootstrapResponse): LeaveRequestItem[] {
+function extractLeaveRequests(
+  result: LeaveBootstrapResponse,
+): LeaveRequestItem[] {
   return result.requests ?? result.data?.requests ?? [];
 }
 
@@ -333,7 +346,9 @@ function extractTimesheetItems(
   return result.items ?? result.data?.items ?? [];
 }
 
-function extractMonthStatus(result: TimesheetMonthStatusResponse): TimesheetStatus {
+function extractMonthStatus(
+  result: TimesheetMonthStatusResponse,
+): TimesheetStatus {
   return result.item?.status ?? result.data?.item?.status ?? "draft";
 }
 
@@ -363,7 +378,10 @@ function extractApiErrorMessage(
     return details;
   }
 
-  if (typeof result.error?.message === "string" && result.error.message.trim()) {
+  if (
+    typeof result.error?.message === "string" &&
+    result.error.message.trim()
+  ) {
     return result.error.message;
   }
 
@@ -398,7 +416,8 @@ function mapEntriesToBoard(items: TimesheetEntryApiItem[]): {
     const currentRows = nextRowsByProject.get(projectCode) ?? [];
     const existingIndex = currentRows.findIndex(
       (row) =>
-        row.taskName.trim().toLowerCase() === item.taskName.trim().toLowerCase(),
+        row.taskName.trim().toLowerCase() ===
+        item.taskName.trim().toLowerCase(),
     );
 
     if (existingIndex >= 0) {
@@ -502,12 +521,19 @@ export function TimesheetMonthBoard({
       ),
     ]);
 
-    const entriesResult = (await entriesResponse.json().catch(() => ({}))) as TimesheetEntriesResponse;
-    const monthStatusResult = (await monthStatusResponse.json().catch(() => ({}))) as TimesheetMonthStatusResponse;
+    const entriesResult = (await entriesResponse
+      .json()
+      .catch(() => ({}))) as TimesheetEntriesResponse;
+    const monthStatusResult = (await monthStatusResponse
+      .json()
+      .catch(() => ({}))) as TimesheetMonthStatusResponse;
 
     if (!entriesResponse.ok) {
       throw new Error(
-        extractApiErrorMessage(entriesResult, "Unable to load timesheet entries."),
+        extractApiErrorMessage(
+          entriesResult,
+          "Unable to load timesheet entries.",
+        ),
       );
     }
 
@@ -527,7 +553,9 @@ export function TimesheetMonthBoard({
           cache: "no-store",
         });
 
-        const result = (await response.json().catch(() => ({}))) as HolidaysResponse;
+        const result = (await response
+          .json()
+          .catch(() => ({}))) as HolidaysResponse;
 
         if (!response.ok) {
           throw new Error(
@@ -572,7 +600,9 @@ export function TimesheetMonthBoard({
           { cache: "no-store" },
         );
 
-        const result = (await response.json().catch(() => ({}))) as LeaveBootstrapResponse;
+        const result = (await response
+          .json()
+          .catch(() => ({}))) as LeaveBootstrapResponse;
 
         if (!response.ok) {
           throw new Error("Unable to load leave overlay.");
@@ -624,7 +654,9 @@ export function TimesheetMonthBoard({
 
         if (!cancelled) {
           toast.error(
-            error instanceof Error ? error.message : "Unable to load month board.",
+            error instanceof Error
+              ? error.message
+              : "Unable to load month board.",
           );
         }
       } finally {
@@ -697,7 +729,9 @@ export function TimesheetMonthBoard({
       return;
     }
 
-    const currentProjectRows = rows.filter((row) => row.projectRefId === projectRefId);
+    const currentProjectRows = rows.filter(
+      (row) => row.projectRefId === projectRefId,
+    );
 
     setRows((current) => [
       ...current,
@@ -728,8 +762,12 @@ export function TimesheetMonthBoard({
       return;
     }
 
-    setProjects((current) => current.filter((project) => project.id !== projectRefId));
-    setRows((current) => current.filter((row) => row.projectRefId !== projectRefId));
+    setProjects((current) =>
+      current.filter((project) => project.id !== projectRefId),
+    );
+    setRows((current) =>
+      current.filter((row) => row.projectRefId !== projectRefId),
+    );
     markBoardDirty();
   }
 
@@ -833,7 +871,9 @@ export function TimesheetMonthBoard({
       }),
     });
 
-    const result = (await response.json().catch(() => ({}))) as TimesheetMonthBoardResponse;
+    const result = (await response
+      .json()
+      .catch(() => ({}))) as TimesheetMonthBoardResponse;
 
     if (!response.ok) {
       throw new Error(extractApiErrorMessage(result, fallbackErrorMessage));
@@ -897,7 +937,9 @@ export function TimesheetMonthBoard({
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : "Unable to submit timesheet month.",
+        error instanceof Error
+          ? error.message
+          : "Unable to submit timesheet month.",
       );
     } finally {
       setIsSubmittingMonth(false);
@@ -919,7 +961,9 @@ export function TimesheetMonthBoard({
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : "Unable to approve timesheet month.",
+        error instanceof Error
+          ? error.message
+          : "Unable to approve timesheet month.",
       );
     } finally {
       setIsApprovingMonth(false);
@@ -952,7 +996,9 @@ export function TimesheetMonthBoard({
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : "Unable to reject timesheet month.",
+        error instanceof Error
+          ? error.message
+          : "Unable to reject timesheet month.",
       );
     } finally {
       setIsRejectingMonth(false);
@@ -960,22 +1006,28 @@ export function TimesheetMonthBoard({
   }
 
   return (
-    <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+    <section className="glass-panel-timesheet overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500">Month board</p>
+            <div className="inline-flex rounded-full border border-emerald-200/80 bg-emerald-100/75 px-3 py-1 text-xs font-medium tracking-[0.2em] text-emerald-600">
+              Month board
+            </div>
             <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
               Monthly timesheet board
             </h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Plan effort by project and sub-task, then review month entries in a
-              cleaner board-first workspace.
+              Plan effort by project and sub-task, then review month entries in
+              a cleaner board-first workspace.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button type="button" variant="outline" onClick={() => moveMonth(-1)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => moveMonth(-1)}
+            >
               <ChevronLeft className="size-4" />
             </Button>
 
@@ -983,7 +1035,11 @@ export function TimesheetMonthBoard({
               {getMonthLabel(year, month)}
             </div>
 
-            <Button type="button" variant="outline" onClick={() => moveMonth(1)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => moveMonth(1)}
+            >
               <ChevronRight className="size-4" />
             </Button>
 
@@ -1263,7 +1319,8 @@ export function TimesheetMonthBoard({
                     colSpan={days.length + 2}
                     className="border-b border-slate-100 px-4 py-12 text-center text-sm text-slate-500"
                   >
-                    No projects added yet. Start by clicking <strong>Add Project</strong>.
+                    No projects added yet. Start by clicking{" "}
+                    <strong>Add Project</strong>.
                   </td>
                 </tr>
               ) : null}
@@ -1284,7 +1341,9 @@ export function TimesheetMonthBoard({
                               </p>
                               <p className="mt-1 text-xs text-slate-500">
                                 {project.customerName || "No customer"} •{" "}
-                                {project.isChargeable ? "Chargeable" : "Non-charge"}
+                                {project.isChargeable
+                                  ? "Chargeable"
+                                  : "Non-charge"}
                               </p>
                             </div>
 
@@ -1315,7 +1374,12 @@ export function TimesheetMonthBoard({
 
                           {days.map((day) => {
                             const isoDate = toIsoDate(year, month, day);
-                            const dayType = getDayType(year, month, day, holidayMap);
+                            const dayType = getDayType(
+                              year,
+                              month,
+                              day,
+                              holidayMap,
+                            );
                             const leaveItem = leaveOverlayMap[isoDate];
 
                             return (
@@ -1327,7 +1391,10 @@ export function TimesheetMonthBoard({
                           })}
 
                           <div className="flex min-h-[72px] items-center justify-center border-r border-slate-200 bg-slate-50 px-4 py-4 text-center font-semibold text-slate-900">
-                            {project.rows.reduce((sum, row) => sum + getRowTotal(row), 0)}
+                            {project.rows.reduce(
+                              (sum, row) => sum + getRowTotal(row),
+                              0,
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1362,12 +1429,19 @@ export function TimesheetMonthBoard({
 
                           {days.map((day) => {
                             const isoDate = toIsoDate(year, month, day);
-                            const dayType = getDayType(year, month, day, holidayMap);
+                            const dayType = getDayType(
+                              year,
+                              month,
+                              day,
+                              holidayMap,
+                            );
                             const leaveItem = leaveOverlayMap[isoDate];
                             const holidayName = holidayMap[isoDate]?.name;
 
-                            const isApprovedLeave = leaveItem?.status === "approved";
-                            const isPendingLeave = leaveItem?.status === "pending";
+                            const isApprovedLeave =
+                              leaveItem?.status === "approved";
+                            const isPendingLeave =
+                              leaveItem?.status === "pending";
 
                             return (
                               <div

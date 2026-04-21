@@ -256,7 +256,7 @@ export function LeaveCalendar({ events }: LeaveCalendarProps) {
   }, [calendarDays, selectedDate]);
 
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="glass-panel-calendar rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 md:flex-row md:items-start md:justify-between">
         <div>
           <p className="text-sm font-medium text-slate-500">Calendar</p>

@@ -31,22 +31,31 @@ function StatCard({
   value: string | number;
   hint?: string;
   icon: React.ReactNode;
-  tone?: "default" | "sky" | "emerald" | "amber";
+  tone?: "default" | "green" | "emerald" | "lime";
 }) {
   const toneClassName =
-    tone === "sky"
-      ? "border-sky-200 bg-sky-50"
+    tone === "green"
+      ? "border-green-200 bg-green-50/70"
       : tone === "emerald"
-        ? "border-emerald-200 bg-emerald-50"
-        : tone === "amber"
-          ? "border-amber-200 bg-amber-50"
-          : "border-slate-200 bg-white";
+        ? "border-emerald-200 bg-emerald-50/70"
+        : tone === "lime"
+          ? "border-lime-200 bg-lime-50/70"
+          : "border-green-100 bg-white/70";
+
+  const iconToneClassName =
+    tone === "green"
+      ? "border-green-200 bg-green-50/80 text-green-600"
+      : tone === "emerald"
+        ? "border-emerald-200 bg-emerald-50/80 text-emerald-600"
+        : tone === "lime"
+          ? "border-lime-200 bg-lime-50/80 text-lime-600"
+          : "border-slate-200 bg-white/80 text-slate-600";
 
   return (
-    <div className={`rounded-2xl border px-4 py-4 shadow-sm ${toneClassName}`}>
+    <div className={`glass-panel-timesheet rounded-2xl border px-4 py-4 ${toneClassName}`}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-emerald-600">
             {title}
           </p>
           <p className="mt-2 text-2xl font-semibold leading-none text-slate-900">
@@ -57,7 +66,7 @@ function StatCard({
           ) : null}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white/80 p-2 text-slate-600">
+        <div className={`rounded-2xl border p-2 ${iconToneClassName}`}>
           {icon}
         </div>
       </div>
@@ -81,6 +90,7 @@ export default async function TimesheetPage() {
   );
 
   return (
+    <div className="glass-panel-timesheet">
     <AppShell
       fullName={session.fullName}
       email={session.email}
@@ -101,7 +111,7 @@ export default async function TimesheetPage() {
             value={formatHours(overview.totalHours)}
             hint="Visible in the current timesheet dataset"
             icon={<Timer className="size-5" />}
-            tone="sky"
+            tone="green"
           />
           <StatCard
             title="Billable Hours"
@@ -115,7 +125,7 @@ export default async function TimesheetPage() {
             value={overview.submittedCount}
             hint="Waiting for review"
             icon={<Clock3 className="size-5" />}
-            tone="amber"
+            tone="lime"
           />
           <StatCard
             title="Approved"
@@ -132,32 +142,31 @@ export default async function TimesheetPage() {
         />
 
         {canManageApproval ? (
-          <section className="rounded-[28px] border border-amber-200 bg-amber-50 p-5 shadow-sm">
+          <section className="glass-panel-timesheet rounded-[28px] border border-emerald-200/70 p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
-                <p className="text-sm font-medium text-amber-700">
+                <p className="text-sm font-medium text-emerald-700">
                   Approval summary
                 </p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-amber-900">
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-emerald-900">
                   Lead review pulse
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-amber-800">
-                  Keep an eye on the submitted queue and the current month
-                  approval volume without scanning the entire table.
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-emerald-800">
+                  Keep an eye on the submitted queue and the current month approval volume without scanning the entire table.
                 </p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-amber-300 bg-white/70 px-4 py-3">
-                  <p className="text-[11px] uppercase tracking-[0.14em] text-amber-700">
+                <div className="rounded-2xl border border-lime-200 bg-white/72 px-4 py-3">
+                  <p className="text-[11px] uppercase tracking-[0.14em] text-lime-700">
                     Pending
                   </p>
-                  <p className="mt-2 text-2xl font-semibold text-amber-900">
+                  <p className="mt-2 text-2xl font-semibold text-lime-900">
                     {approval.pendingCount}
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-emerald-200 bg-white/70 px-4 py-3">
+                <div className="rounded-2xl border border-emerald-200 bg-white/72 px-4 py-3">
                   <p className="text-[11px] uppercase tracking-[0.14em] text-emerald-700">
                     Approved This Month
                   </p>
@@ -166,7 +175,7 @@ export default async function TimesheetPage() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-rose-200 bg-white/70 px-4 py-3">
+                <div className="rounded-2xl border border-rose-200 bg-white/72 px-4 py-3">
                   <p className="text-[11px] uppercase tracking-[0.14em] text-rose-700">
                     Rejected This Month
                   </p>
@@ -180,5 +189,6 @@ export default async function TimesheetPage() {
         ) : null}
       </div>
     </AppShell>
+    </div>
   );
 }

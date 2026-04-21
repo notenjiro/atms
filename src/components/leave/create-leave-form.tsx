@@ -47,7 +47,9 @@ function joinClassNames(...values: Array<string | undefined | false>): string {
   return values.filter(Boolean).join(" ");
 }
 
-function normalizeErrorDetails(details: string | string[] | undefined): string[] {
+function normalizeErrorDetails(
+  details: string | string[] | undefined,
+): string[] {
   if (!details) {
     return [];
   }
@@ -78,7 +80,10 @@ export function CreateLeaveForm({
     );
   }, [values]);
 
-  function updateField<K extends keyof FormValues>(key: K, value: FormValues[K]) {
+  function updateField<K extends keyof FormValues>(
+    key: K,
+    value: FormValues[K],
+  ) {
     setValues((current) => ({
       ...current,
       [key]: value,
@@ -143,13 +148,15 @@ export function CreateLeaveForm({
   return (
     <section
       className={joinClassNames(
-        "rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm",
+        "glass-panel-leave rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm",
         className,
       )}
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-500">Create</p>
+          <div className="inline-flex rounded-full border border-orange-200/80 bg-orange-100/75 px-3 py-1 text-xs font-medium tracking-[0.2em] text-orange-600">
+            Create
+          </div>
           <h2 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">
             New leave request
           </h2>
