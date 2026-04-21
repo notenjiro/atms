@@ -1,8 +1,11 @@
+import path from "node:path";
+
 import { ZodError } from "zod";
 
 import { nowIsoDateTime } from "@/lib/date";
 import { generateId, generateIssueNo } from "@/lib/id";
 import { NotFoundError, ValidationError } from "@/lib/errors";
+import { readJsonFile } from "@/lib/fs/json-store";
 import { getProjectAccountById } from "@/modules/project-accounts/project-account.service";
 
 import {
@@ -20,6 +23,7 @@ import type {
   CreateIssueInput,
   Issue,
   IssueFilters,
+  IssuePolicySettings,
   IssueSummary,
   UpdateIssueInput,
 } from "./issue.types";
@@ -33,6 +37,18 @@ type IssueActor = {
 type IssueHistoryActor = {
   actorId: string;
   actorName: string;
+};
+
+const SETTINGS_FILE_PATH = path.join(process.cwd(), "data", "settings.json");
+
+const DEFAULT_ISSUE_POLICY_SETTINGS: IssuePolicySettings = {
+  requireOwnerToStartProgress: true,
+  requireOwnerToResolve: true,
+  allowReopenClosed: true,
+  slaHoursLow: 72,
+  slaHoursMedium: 24,
+  slaHoursHigh: 8,
+  slaHoursCritical: 4,
 };
 
 function formatZodErrors(error: ZodError): string[] {
@@ -202,6 +218,119 @@ function normalizeHistoryValue(value: unknown): string | undefined {
   return String(value);
 }
 
+function hasOwner(issue: Pick<Issue, "ownerName">): boolean {
+  return Boolean(issue.ownerName?.trim());
+}
+
+function getAllowedNextStatuses(
+  currentStatus: Issue["status"],
+  settings: IssuePolicySettings,
+): Issue["status"][] {
+  switch (currentStatus) {
+    case "open":
+      return ["open", "in_progress", "cancelled"];
+    case "in_progress":
+      return ["in_progress", "pending", "resolved"];
+    case "pending":
+      return ["pending", "in_progress", "cancelled"];
+    case "resolved":
+      return ["resolved", "closed", "open"];
+    case "closed":
+      return settings.allowReopenClosed ? ["closed", "open"] : ["closed"];
+    case "cancelled":
+      return settings.allowReopenClosed ? ["cancelled", "open"] : ["cancelled"];
+    default:
+      return [currentStatus];
+  }
+}
+
+function assertStatusTransitionAllowed(
+  currentStatus: Issue["status"],
+  nextStatus: Issue["status"],
+  settings: IssuePolicySettings,
+): void {
+  const allowedStatuses = getAllowedNextStatuses(currentStatus, settings);
+
+  if (!allowedStatuses.includes(nextStatus)) {
+    throw new ValidationError(
+      `Status transition from ${currentStatus} to ${nextStatus} is not allowed by current settings.`,
+    );
+  }
+}
+
+function assertOwnerRulesForStatus(
+  issueLike: Pick<Issue, "status" | "ownerName">,
+  nextStatus: Issue["status"],
+  settings: IssuePolicySettings,
+): void {
+  if (
+    nextStatus === "in_progress" &&
+    settings.requireOwnerToStartProgress &&
+    !hasOwner(issueLike)
+  ) {
+    throw new ValidationError(
+      "Owner is required before moving an issue to In Progress.",
+    );
+  }
+
+  if (
+    (nextStatus === "resolved" || nextStatus === "closed") &&
+    settings.requireOwnerToResolve &&
+    !hasOwner(issueLike)
+  ) {
+    throw new ValidationError(
+      "Owner is required before resolving or closing an issue.",
+    );
+  }
+}
+
+function sanitizeSlaHours(value: unknown, fallback: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return fallback;
+  }
+
+  return Math.floor(value);
+}
+
+async function getIssuePolicySettings(): Promise<IssuePolicySettings> {
+  const data = await readJsonFile<Record<string, unknown>>(SETTINGS_FILE_PATH, {});
+  const issue =
+    typeof data.issue === "object" && data.issue !== null
+      ? (data.issue as Record<string, unknown>)
+      : {};
+
+  return {
+    requireOwnerToStartProgress:
+      typeof issue.requireOwnerToStartProgress === "boolean"
+        ? issue.requireOwnerToStartProgress
+        : DEFAULT_ISSUE_POLICY_SETTINGS.requireOwnerToStartProgress,
+    requireOwnerToResolve:
+      typeof issue.requireOwnerToResolve === "boolean"
+        ? issue.requireOwnerToResolve
+        : DEFAULT_ISSUE_POLICY_SETTINGS.requireOwnerToResolve,
+    allowReopenClosed:
+      typeof issue.allowReopenClosed === "boolean"
+        ? issue.allowReopenClosed
+        : DEFAULT_ISSUE_POLICY_SETTINGS.allowReopenClosed,
+    slaHoursLow: sanitizeSlaHours(
+      issue.slaHoursLow,
+      DEFAULT_ISSUE_POLICY_SETTINGS.slaHoursLow,
+    ),
+    slaHoursMedium: sanitizeSlaHours(
+      issue.slaHoursMedium,
+      DEFAULT_ISSUE_POLICY_SETTINGS.slaHoursMedium,
+    ),
+    slaHoursHigh: sanitizeSlaHours(
+      issue.slaHoursHigh,
+      DEFAULT_ISSUE_POLICY_SETTINGS.slaHoursHigh,
+    ),
+    slaHoursCritical: sanitizeSlaHours(
+      issue.slaHoursCritical,
+      DEFAULT_ISSUE_POLICY_SETTINGS.slaHoursCritical,
+    ),
+  };
+}
+
 async function appendCreatedHistory(issue: Issue, actor: IssueActor): Promise<void> {
   await appendIssueHistory({
     issueId: issue.id,
@@ -276,6 +405,10 @@ async function appendUpdatedHistory(
   }
 
   await appendManyIssueHistory(historyInputs);
+}
+
+export async function getIssuePolicySettingsService(): Promise<IssuePolicySettings> {
+  return getIssuePolicySettings();
 }
 
 export async function listIssuesService(filters?: IssueFilters): Promise<Issue[]> {
@@ -383,6 +516,8 @@ export async function updateIssueService(
     throw new NotFoundError("Issue not found.");
   }
 
+  const settings = await getIssuePolicySettings();
+
   let customerName = parsed.data.customerName ?? existing.customerName;
   let projectAccountId = existing.projectAccountId;
   let projectAccountCode = existing.projectAccountCode;
@@ -414,6 +549,23 @@ export async function updateIssueService(
   }
 
   const nextStatus = parsed.data.status ?? existing.status;
+
+  assertStatusTransitionAllowed(existing.status, nextStatus, settings);
+
+  const nextOwnerName =
+    typeof parsed.data.ownerName === "string"
+      ? parsed.data.ownerName || undefined
+      : existing.ownerName;
+
+  assertOwnerRulesForStatus(
+    {
+      status: existing.status,
+      ownerName: nextOwnerName,
+    },
+    nextStatus,
+    settings,
+  );
+
   const statusTimestamps =
     nextStatus === existing.status
       ? {
@@ -430,10 +582,7 @@ export async function updateIssueService(
     projectAccountId,
     projectAccountCode,
     projectAccountName,
-    ownerName:
-      typeof parsed.data.ownerName === "string"
-        ? parsed.data.ownerName || undefined
-        : existing.ownerName,
+    ownerName: nextOwnerName,
     ownerEmail:
       typeof parsed.data.ownerEmail === "string"
         ? parsed.data.ownerEmail || undefined

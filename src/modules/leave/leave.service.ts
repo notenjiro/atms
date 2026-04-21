@@ -1,5 +1,8 @@
+// src/modules/leave/leave.service.ts
 import { randomUUID } from "node:crypto";
+import path from "node:path";
 
+import { readJsonFile } from "@/lib/fs/json-store";
 import { NotFoundError, ValidationError } from "@/lib/errors";
 
 import {
@@ -36,8 +39,45 @@ type LeaveActor = {
   approverEmail?: string;
 };
 
+type LeavePolicySettings = {
+  annual: number;
+  sick: number;
+  requireApproval: boolean;
+};
+
+const DEFAULT_LEAVE_POLICY_SETTINGS: LeavePolicySettings = {
+  annual: 10,
+  sick: 30,
+  requireApproval: true,
+};
+
 const DEFAULT_APPROVER_ROLE = "lead" as const;
 const DEFAULT_MANUAL_QUOTA_LEAVE_IDS = new Set(["L001", "L003", "L004"]);
+const SETTINGS_FILE_PATH = path.join(process.cwd(), "data", "settings.json");
+
+async function getLeavePolicySettings(): Promise<LeavePolicySettings> {
+  const data = await readJsonFile<Record<string, unknown>>(SETTINGS_FILE_PATH, {});
+
+  const leave =
+    typeof data.leave === "object" && data.leave !== null
+      ? (data.leave as Record<string, unknown>)
+      : {};
+
+  return {
+    annual:
+      typeof leave.annual === "number"
+        ? leave.annual
+        : DEFAULT_LEAVE_POLICY_SETTINGS.annual,
+    sick:
+      typeof leave.sick === "number"
+        ? leave.sick
+        : DEFAULT_LEAVE_POLICY_SETTINGS.sick,
+    requireApproval:
+      typeof leave.requireApproval === "boolean"
+        ? leave.requireApproval
+        : DEFAULT_LEAVE_POLICY_SETTINGS.requireApproval,
+  };
+}
 
 function getNowIsoString(): string {
   return new Date().toISOString();
@@ -59,12 +99,19 @@ function getLeaveTypeDefinition(leaveTypeId: string) {
   return LEAVE_TYPES.find((leaveType) => leaveType.id === leaveTypeId);
 }
 
-function getDayPortionWeight(portion: LeaveDayPortion): number {
-  if (portion === "full") {
-    return 1;
+function getConfiguredQuotaDays(
+  leaveTypeId: string,
+  leavePolicySettings: LeavePolicySettings,
+): number | undefined {
+  if (leaveTypeId === "L001") {
+    return leavePolicySettings.annual;
   }
 
-  return 0.5;
+  if (leaveTypeId === "L003") {
+    return leavePolicySettings.sick;
+  }
+
+  return getLeaveTypeDefinition(leaveTypeId)?.quotaDays;
 }
 
 function roundLeaveDays(value: number): number {
@@ -120,29 +167,39 @@ function calculateTotalLeaveDays(
   return roundLeaveDays(totalDays);
 }
 
-function buildDefaultQuotaBalances(): LeaveQuotaBalance[] {
+function buildDefaultQuotaBalances(
+  leavePolicySettings: LeavePolicySettings,
+): LeaveQuotaBalance[] {
   const now = getNowIsoString();
 
   return LEAVE_TYPES.filter((leaveType) =>
     DEFAULT_MANUAL_QUOTA_LEAVE_IDS.has(leaveType.id),
-  ).map((leaveType) => ({
-    leaveTypeId: leaveType.id,
-    entitledDays: leaveType.quotaDays,
-    carriedForwardDays: 0,
-    usedDays: 0,
-    pendingDays: 0,
-    remainingDays: leaveType.quotaDays,
-    asOfDate: toDateOnly(now),
-    source: leaveType.quotaSource,
-    updatedAt: now,
-  }));
+  ).map((leaveType) => {
+    const quotaDays = getConfiguredQuotaDays(leaveType.id, leavePolicySettings);
+
+    return {
+      leaveTypeId: leaveType.id,
+      entitledDays: quotaDays,
+      carriedForwardDays: 0,
+      usedDays: 0,
+      pendingDays: 0,
+      remainingDays: quotaDays,
+      asOfDate: toDateOnly(now),
+      source: leaveType.quotaSource,
+      updatedAt: now,
+    };
+  });
 }
 
 function mergeQuotaBalancesWithDefaults(
   storedBalances: LeaveQuotaBalance[],
+  leavePolicySettings: LeavePolicySettings,
 ): LeaveQuotaBalance[] {
   const defaultMap = new Map(
-    buildDefaultQuotaBalances().map((balance) => [balance.leaveTypeId, balance]),
+    buildDefaultQuotaBalances(leavePolicySettings).map((balance) => [
+      balance.leaveTypeId,
+      balance,
+    ]),
   );
 
   for (const balance of storedBalances) {
@@ -153,17 +210,22 @@ function mergeQuotaBalancesWithDefaults(
     const existing = defaultMap.get(leaveType.id);
 
     if (existing) {
-      return existing;
+      return {
+        ...existing,
+        entitledDays:
+          typeof existing.entitledDays === "number"
+            ? getConfiguredQuotaDays(leaveType.id, leavePolicySettings)
+            : existing.entitledDays,
+      };
     }
 
     return {
       leaveTypeId: leaveType.id,
-      entitledDays: leaveType.quotaDays,
+      entitledDays: getConfiguredQuotaDays(leaveType.id, leavePolicySettings),
       carriedForwardDays: 0,
       usedDays: 0,
       pendingDays: 0,
-      remainingDays:
-        typeof leaveType.quotaDays === "number" ? leaveType.quotaDays : undefined,
+      remainingDays: getConfiguredQuotaDays(leaveType.id, leavePolicySettings),
       asOfDate: toDateOnly(getNowIsoString()),
       source: leaveType.quotaSource,
       updatedAt: getNowIsoString(),
@@ -174,14 +236,20 @@ function mergeQuotaBalancesWithDefaults(
 function recomputeQuotaBalancesFromRequests(
   requests: LeaveRequest[],
   baseBalances: LeaveQuotaBalance[],
+  leavePolicySettings: LeavePolicySettings,
 ): LeaveQuotaBalance[] {
-  const balances = mergeQuotaBalancesWithDefaults(baseBalances).map((balance) => ({
+  const balances = mergeQuotaBalancesWithDefaults(
+    baseBalances,
+    leavePolicySettings,
+  ).map((balance) => ({
     ...balance,
     usedDays: 0,
     pendingDays: 0,
   }));
 
-  const balanceMap = new Map(balances.map((balance) => [balance.leaveTypeId, balance]));
+  const balanceMap = new Map(
+    balances.map((balance) => [balance.leaveTypeId, balance]),
+  );
 
   for (const request of requests) {
     const balance = balanceMap.get(request.leaveTypeId);
@@ -250,11 +318,17 @@ function matchesLeaveRequestFilters(
     return false;
   }
 
-  if (filters.fromDate && toDateOnly(request.endDate) < toDateOnly(filters.fromDate)) {
+  if (
+    filters.fromDate &&
+    toDateOnly(request.endDate) < toDateOnly(filters.fromDate)
+  ) {
     return false;
   }
 
-  if (filters.toDate && toDateOnly(request.startDate) > toDateOnly(filters.toDate)) {
+  if (
+    filters.toDate &&
+    toDateOnly(request.startDate) > toDateOnly(filters.toDate)
+  ) {
     return false;
   }
 
@@ -290,7 +364,10 @@ function buildLeaveCalendarEvents(requests: LeaveRequest[]): LeaveCalendarEvent[
 
       let portion: LeaveDayPortion = "full";
 
-      if (isSameDate(currentDate, request.startDate) && isSameDate(currentDate, request.endDate)) {
+      if (
+        isSameDate(currentDate, request.startDate) &&
+        isSameDate(currentDate, request.endDate)
+      ) {
         if (request.startPortion === "full" && request.endPortion === "full") {
           portion = "full";
         } else if (request.startPortion === request.endPortion) {
@@ -322,12 +399,17 @@ function buildLeaveCalendarEvents(requests: LeaveRequest[]): LeaveCalendarEvent[
 }
 
 async function recalculateAndPersistQuotaBalances(): Promise<LeaveQuotaBalance[]> {
-  const [requests, quotaBalances] = await Promise.all([
+  const [requests, quotaBalances, leavePolicySettings] = await Promise.all([
     listLeaveRequests(),
     listLeaveQuotaBalances(),
+    getLeavePolicySettings(),
   ]);
 
-  const nextBalances = recomputeQuotaBalancesFromRequests(requests, quotaBalances);
+  const nextBalances = recomputeQuotaBalancesFromRequests(
+    requests,
+    quotaBalances,
+    leavePolicySettings,
+  );
 
   await saveLeaveQuotaBalances(nextBalances);
 
@@ -335,14 +417,21 @@ async function recalculateAndPersistQuotaBalances(): Promise<LeaveQuotaBalance[]
 }
 
 export async function ensureLeaveQuotaBalances(): Promise<LeaveQuotaBalance[]> {
-  const existing = await listLeaveQuotaBalances();
+  const [existing, leavePolicySettings] = await Promise.all([
+    listLeaveQuotaBalances(),
+    getLeavePolicySettings(),
+  ]);
 
   if (existing.length > 0) {
-    return recomputeQuotaBalancesFromRequests(await listLeaveRequests(), existing);
+    return recomputeQuotaBalancesFromRequests(
+      await listLeaveRequests(),
+      existing,
+      leavePolicySettings,
+    );
   }
 
-  const defaults = buildDefaultQuotaBalances();
-  const merged = mergeQuotaBalancesWithDefaults(defaults);
+  const defaults = buildDefaultQuotaBalances(leavePolicySettings);
+  const merged = mergeQuotaBalancesWithDefaults(defaults, leavePolicySettings);
 
   await saveLeaveQuotaBalances(merged);
 
@@ -397,9 +486,15 @@ export async function createLeaveRequestService(
     endPortion,
   );
 
-  await ensureLeaveQuotaBalances();
+  const [, leavePolicySettings] = await Promise.all([
+    ensureLeaveQuotaBalances(),
+    getLeavePolicySettings(),
+  ]);
 
   const now = getNowIsoString();
+  const initialStatus: LeaveStatus = leavePolicySettings.requireApproval
+    ? "pending"
+    : "approved";
 
   const request: LeaveRequest = {
     id: randomUUID(),
@@ -413,13 +508,14 @@ export async function createLeaveRequestService(
     endPortion,
     totalDays,
     remarks: parsedInput.data.remarks?.trim() || undefined,
-    status: "pending",
+    status: initialStatus,
     approver: {
       role: DEFAULT_APPROVER_ROLE,
       name: actor.approverName,
       email: actor.approverEmail,
     },
     submittedAt: now,
+    approvedAt: initialStatus === "approved" ? now : undefined,
     createdAt: now,
     updatedAt: now,
   };
@@ -566,6 +662,7 @@ export async function listLeaveQuotaBalancesService(): Promise<
   return recomputeQuotaBalancesFromRequests(
     await listLeaveRequests(),
     existing,
+    await getLeavePolicySettings(),
   );
 }
 
@@ -607,9 +704,10 @@ export async function overrideLeaveQuotaBalanceFromApiService(
 export async function getLeaveDashboardSummaryService(
   employeeId?: string,
 ): Promise<LeaveDashboardSummary> {
-  const [allRequests, storedBalances] = await Promise.all([
+  const [allRequests, storedBalances, leavePolicySettings] = await Promise.all([
     listLeaveRequests(),
     ensureLeaveQuotaBalances(),
+    getLeavePolicySettings(),
   ]);
 
   const requests = employeeId
@@ -619,6 +717,7 @@ export async function getLeaveDashboardSummaryService(
   const recomputedBalances = recomputeQuotaBalancesFromRequests(
     requests,
     storedBalances,
+    leavePolicySettings,
   );
 
   const cards = LEAVE_TYPES.map((leaveType) => {
@@ -629,13 +728,15 @@ export async function getLeaveDashboardSummaryService(
     return {
       leaveTypeId: leaveType.id,
       leaveTypeName: leaveType.name,
-      entitledDays: balance?.entitledDays ?? leaveType.quotaDays,
+      entitledDays:
+        balance?.entitledDays ??
+        getConfiguredQuotaDays(leaveType.id, leavePolicySettings),
       carriedForwardDays: balance?.carriedForwardDays ?? 0,
       usedDays: balance?.usedDays ?? 0,
       pendingDays: balance?.pendingDays ?? 0,
       remainingDays:
         balance?.remainingDays ??
-        (typeof leaveType.quotaDays === "number" ? leaveType.quotaDays : undefined),
+        getConfiguredQuotaDays(leaveType.id, leavePolicySettings),
       source: balance?.source ?? leaveType.quotaSource,
     };
   });
@@ -693,6 +794,7 @@ export async function getLeaveBootstrapService(
   requests: LeaveRequest[];
   quotaBalances: LeaveQuotaBalance[];
   calendarEvents: LeaveCalendarEvent[];
+  leavePolicySettings: LeavePolicySettings;
 }> {
   await ensureLeaveQuotaBalances();
 
@@ -700,18 +802,27 @@ export async function getLeaveBootstrapService(
     employeeId ? { employeeId } : undefined,
   );
 
-  const quotaBalances = await listLeaveQuotaBalancesService();
-  const summary = await getLeaveDashboardSummaryService(employeeId);
-  const calendarEvents = await getLeaveCalendarEventsService(
-    employeeId ? { employeeId } : undefined,
-  );
+  const [quotaBalances, summary, calendarEvents, leavePolicySettings] =
+    await Promise.all([
+      listLeaveQuotaBalancesService(),
+      getLeaveDashboardSummaryService(employeeId),
+      getLeaveCalendarEventsService(
+        employeeId ? { employeeId } : undefined,
+      ),
+      getLeavePolicySettings(),
+    ]);
 
   return {
     summary,
     requests,
     quotaBalances,
     calendarEvents,
+    leavePolicySettings,
   };
+}
+
+export async function getLeavePolicySettingsService(): Promise<LeavePolicySettings> {
+  return getLeavePolicySettings();
 }
 
 export async function seedDefaultLeaveDataService(): Promise<LeaveFile> {
@@ -725,7 +836,11 @@ export async function seedDefaultLeaveDataService(): Promise<LeaveFile> {
     };
   }
 
-  const quotaBalances = mergeQuotaBalancesWithDefaults(buildDefaultQuotaBalances());
+  const leavePolicySettings = await getLeavePolicySettings();
+  const quotaBalances = mergeQuotaBalancesWithDefaults(
+    buildDefaultQuotaBalances(leavePolicySettings),
+    leavePolicySettings,
+  );
 
   await saveLeaveQuotaBalances(quotaBalances);
 

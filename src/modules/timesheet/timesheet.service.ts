@@ -1,5 +1,8 @@
+// src/modules/timesheet/timesheet.service.ts
 import { randomUUID } from "node:crypto";
+import path from "node:path";
 
+import { readJsonFile } from "@/lib/fs/json-store";
 import { NotFoundError, ValidationError } from "@/lib/errors";
 import {
   approveTimesheetMonthService,
@@ -26,6 +29,7 @@ import type {
   TimesheetEntry,
   TimesheetEntryFilters,
   TimesheetOverviewSummary,
+  TimesheetPolicySettings,
   TimesheetStatus,
   UpdateTimesheetEntryInput,
 } from "./timesheet.types";
@@ -41,6 +45,13 @@ type TimesheetApprover = {
 };
 
 const DEFAULT_APPROVER_ROLE = "lead" as const;
+const SETTINGS_FILE_PATH = path.join(process.cwd(), "data", "settings.json");
+
+const DEFAULT_TIMESHEET_POLICY_SETTINGS: TimesheetPolicySettings = {
+  hoursPerDay: 8,
+  allowWeekend: false,
+  lockAfterDays: 3,
+};
 
 function getNowIsoString(): string {
   return new Date().toISOString();
@@ -52,6 +63,61 @@ function toDateOnly(value: string): string {
 
 function roundHours(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+function parseDateUtc(value: string): Date {
+  return new Date(`${toDateOnly(value)}T00:00:00.000Z`);
+}
+
+function getUtcTodayDateOnly(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getUtcDayDifference(fromDateOnly: string, toDateOnlyValue: string): number {
+  const from = parseDateUtc(fromDateOnly);
+  const to = parseDateUtc(toDateOnlyValue);
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+
+  return Math.floor((to.getTime() - from.getTime()) / millisecondsPerDay);
+}
+
+function isWeekendDate(dateOnly: string): boolean {
+  const day = parseDateUtc(dateOnly).getUTCDay();
+  return day === 0 || day === 6;
+}
+
+async function getTimesheetPolicySettings(): Promise<TimesheetPolicySettings> {
+  const data = await readJsonFile<Record<string, unknown>>(SETTINGS_FILE_PATH, {});
+
+  const timesheet =
+    typeof data.timesheet === "object" && data.timesheet !== null
+      ? (data.timesheet as Record<string, unknown>)
+      : {};
+
+  const rawHoursPerDay =
+    typeof timesheet.hoursPerDay === "number"
+      ? timesheet.hoursPerDay
+      : DEFAULT_TIMESHEET_POLICY_SETTINGS.hoursPerDay;
+
+  const rawLockAfterDays =
+    typeof timesheet.lockAfterDays === "number"
+      ? timesheet.lockAfterDays
+      : DEFAULT_TIMESHEET_POLICY_SETTINGS.lockAfterDays;
+
+  return {
+    hoursPerDay:
+      Number.isFinite(rawHoursPerDay) && rawHoursPerDay > 0
+        ? rawHoursPerDay
+        : DEFAULT_TIMESHEET_POLICY_SETTINGS.hoursPerDay,
+    allowWeekend:
+      typeof timesheet.allowWeekend === "boolean"
+        ? timesheet.allowWeekend
+        : DEFAULT_TIMESHEET_POLICY_SETTINGS.allowWeekend,
+    lockAfterDays:
+      Number.isFinite(rawLockAfterDays) && rawLockAfterDays >= 0
+        ? Math.floor(rawLockAfterDays)
+        : DEFAULT_TIMESHEET_POLICY_SETTINGS.lockAfterDays,
+  };
 }
 
 function sortTimesheetEntriesDescending(items: TimesheetEntry[]): TimesheetEntry[] {
@@ -259,6 +325,123 @@ function buildMonthDateRange(month: string): {
   };
 }
 
+function isContentMutationInput(input: UpdateTimesheetEntryInput): boolean {
+  return (
+    typeof input.workDate === "string" ||
+    typeof input.hours === "number" ||
+    typeof input.unit === "string" ||
+    typeof input.taskName === "string" ||
+    typeof input.description === "string" ||
+    typeof input.projectAccountId === "string" ||
+    typeof input.projectAccountName === "string" ||
+    typeof input.customerName === "string" ||
+    typeof input.isBillable === "boolean" ||
+    typeof input.source === "string"
+  );
+}
+
+function assertWorkDateAllowed(
+  workDate: string,
+  settings: TimesheetPolicySettings,
+): void {
+  const normalizedWorkDate = toDateOnly(workDate);
+
+  if (!settings.allowWeekend && isWeekendDate(normalizedWorkDate)) {
+    throw new ValidationError(
+      "Weekend timesheet entries are disabled by current settings.",
+    );
+  }
+
+  const today = getUtcTodayDateOnly();
+  const ageInDays = getUtcDayDifference(normalizedWorkDate, today);
+
+  if (ageInDays > settings.lockAfterDays) {
+    throw new ValidationError(
+      `Timesheet entries older than ${settings.lockAfterDays} day(s) are locked by current settings.`,
+    );
+  }
+}
+
+async function assertDailyHoursWithinLimit(input: {
+  employeeId: string;
+  workDate: string;
+  hours: number;
+  excludeEntryId?: string;
+  items?: TimesheetEntry[];
+  settings: TimesheetPolicySettings;
+}): Promise<void> {
+  const items =
+    input.items ??
+    (await listTimesheetEntriesService({
+      employeeId: input.employeeId,
+      fromDate: input.workDate,
+      toDate: input.workDate,
+    }));
+
+  const totalHoursForDay = items
+    .filter((item) => item.id !== input.excludeEntryId)
+    .reduce((sum, item) => sum + item.hours, 0);
+
+  const nextTotalHours = roundHours(totalHoursForDay + input.hours);
+
+  if (nextTotalHours > input.settings.hoursPerDay) {
+    throw new ValidationError(
+      `Daily hours exceed the current limit of ${input.settings.hoursPerDay} hour(s).`,
+    );
+  }
+}
+
+async function validateCreateOrReplaceTimesheetEntry(
+  actor: TimesheetActor,
+  input: {
+    workDate: string;
+    hours: number;
+  },
+  settings: TimesheetPolicySettings,
+  options?: {
+    excludeEntryId?: string;
+    items?: TimesheetEntry[];
+  },
+): Promise<void> {
+  const normalizedWorkDate = toDateOnly(input.workDate);
+
+  assertWorkDateAllowed(normalizedWorkDate, settings);
+
+  await assertDailyHoursWithinLimit({
+    employeeId: actor.employeeId,
+    workDate: normalizedWorkDate,
+    hours: roundHours(input.hours),
+    excludeEntryId: options?.excludeEntryId,
+    items: options?.items,
+    settings,
+  });
+}
+
+async function validateMonthBoardEntries(
+  actor: TimesheetActor,
+  entries: SaveTimesheetMonthBoardInput["entries"],
+  settings: TimesheetPolicySettings,
+): Promise<void> {
+  const dailyHoursMap = new Map<string, number>();
+
+  for (const entry of entries) {
+    const workDate = toDateOnly(entry.workDate);
+    const hours = roundHours(entry.hours);
+
+    assertWorkDateAllowed(workDate, settings);
+
+    dailyHoursMap.set(workDate, roundHours((dailyHoursMap.get(workDate) ?? 0) + hours));
+  }
+
+  for (const [workDate, totalHours] of dailyHoursMap.entries()) {
+    if (totalHours > settings.hoursPerDay) {
+      throw new ValidationError(
+        `Daily hours exceed the current limit of ${settings.hoursPerDay} hour(s) on ${workDate}.`,
+      );
+    }
+  }
+}
+
 async function deleteTimesheetEntriesByFiltersService(
   filters: TimesheetEntryFilters,
 ): Promise<void> {
@@ -276,6 +459,9 @@ async function replaceTimesheetMonthEntriesService(
 ): Promise<TimesheetEntry[]> {
   const normalizedMonth = validateMonthKey(month);
   const { fromDate, toDate } = buildMonthDateRange(normalizedMonth);
+  const settings = await getTimesheetPolicySettings();
+
+  await validateMonthBoardEntries(actor, entries, settings);
 
   await deleteTimesheetEntriesByFiltersService({
     employeeId: actor.employeeId,
@@ -319,6 +505,10 @@ async function getTimesheetMonthEntriesService(
   });
 }
 
+export async function getTimesheetPolicySettingsService(): Promise<TimesheetPolicySettings> {
+  return getTimesheetPolicySettings();
+}
+
 export async function listTimesheetEntriesService(
   filters?: TimesheetEntryFilters,
 ): Promise<TimesheetEntry[]> {
@@ -350,6 +540,17 @@ export async function createTimesheetEntryService(
   if (!parsedInput.success) {
     throw new ValidationError("Invalid timesheet entry input.");
   }
+
+  const settings = await getTimesheetPolicySettings();
+
+  await validateCreateOrReplaceTimesheetEntry(
+    actor,
+    {
+      workDate: parsedInput.data.workDate,
+      hours: parsedInput.data.hours,
+    },
+    settings,
+  );
 
   const now = getNowIsoString();
 
@@ -391,14 +592,35 @@ export async function updateTimesheetEntryService(
   const now = getNowIsoString();
 
   const nextStatus = parsedInput.data.status ?? existing.status;
+  const nextWorkDate = toDateOnly(parsedInput.data.workDate ?? existing.workDate);
+  const nextHours =
+    typeof parsedInput.data.hours === "number"
+      ? roundHours(parsedInput.data.hours)
+      : existing.hours;
+
+  if (isContentMutationInput(parsedInput.data)) {
+    const settings = await getTimesheetPolicySettings();
+
+    await validateCreateOrReplaceTimesheetEntry(
+      {
+        employeeId: existing.employeeId,
+        employeeName: existing.employeeName,
+      },
+      {
+        workDate: nextWorkDate,
+        hours: nextHours,
+      },
+      settings,
+      {
+        excludeEntryId: existing.id,
+      },
+    );
+  }
 
   const updatedItem: TimesheetEntry = {
     ...existing,
-    workDate: toDateOnly(parsedInput.data.workDate ?? existing.workDate),
-    hours:
-      typeof parsedInput.data.hours === "number"
-        ? roundHours(parsedInput.data.hours)
-        : existing.hours,
+    workDate: nextWorkDate,
+    hours: nextHours,
     unit: parsedInput.data.unit ?? existing.unit,
     taskName: parsedInput.data.taskName?.trim() ?? existing.taskName,
     description:
@@ -453,6 +675,11 @@ export async function updateTimesheetEntryService(
 }
 
 export async function deleteTimesheetEntryService(id: string): Promise<void> {
+  const existing = await getTimesheetEntryByIdService(id);
+  const settings = await getTimesheetPolicySettings();
+
+  assertWorkDateAllowed(existing.workDate, settings);
+
   await removeTimesheetEntry(id);
 }
 
@@ -464,6 +691,18 @@ export async function submitTimesheetEntryService(
   if (existing.status === "approved") {
     throw new ValidationError("Approved timesheet entries cannot be submitted again.");
   }
+
+  const settings = await getTimesheetPolicySettings();
+
+  assertWorkDateAllowed(existing.workDate, settings);
+
+  await assertDailyHoursWithinLimit({
+    employeeId: existing.employeeId,
+    workDate: existing.workDate,
+    hours: existing.hours,
+    excludeEntryId: existing.id,
+    settings,
+  });
 
   return updateTimesheetEntryService(id, {
     status: "submitted",
@@ -535,10 +774,13 @@ export async function submitTimesheetMonthBoardService(
 ): Promise<TimesheetEntry[]> {
   const items = await saveTimesheetMonthBoardService(input);
   const submittedAt = getNowIsoString();
+  const settings = await getTimesheetPolicySettings();
 
   const updatedItems: TimesheetEntry[] = [];
 
   for (const item of items) {
+    assertWorkDateAllowed(item.workDate, settings);
+
     const updatedItem = await updateTimesheetEntryService(item.id, {
       status: "submitted",
       submittedAt,
@@ -658,7 +900,11 @@ export async function getTimesheetBootstrapService(
 ): Promise<TimesheetBootstrap> {
   const filters = employeeId ? ({ employeeId } satisfies TimesheetEntryFilters) : undefined;
 
-  const items = await listTimesheetEntriesService(filters);
+  const [items, policy] = await Promise.all([
+    listTimesheetEntriesService(filters),
+    getTimesheetPolicySettings(),
+  ]);
+
   const dailySummaries = buildDailySummaries(items);
   const overview = buildOverviewSummary(items);
   const approval = buildApprovalSummary(items);
@@ -668,6 +914,7 @@ export async function getTimesheetBootstrapService(
     dailySummaries,
     overview,
     approval,
+    policy,
   };
 }
 

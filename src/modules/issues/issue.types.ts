@@ -10,6 +10,16 @@ export type IssuePriority = "low" | "medium" | "high" | "critical";
 
 export type IssueSource = "manual" | "servicenow" | "email" | "phone";
 
+export type IssuePolicySettings = {
+  requireOwnerToStartProgress: boolean;
+  requireOwnerToResolve: boolean;
+  allowReopenClosed: boolean;
+  slaHoursLow: number;
+  slaHoursMedium: number;
+  slaHoursHigh: number;
+  slaHoursCritical: number;
+};
+
 export type Issue = {
   id: string;
   issueNo: string;

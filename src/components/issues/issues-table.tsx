@@ -265,7 +265,7 @@ export default function IssuesTable({
 
   return (
     <>
-      <div className="rounded-xl border bg-white">
+      <div className="glass-panel-issue rounded-xl border bg-white">
         <div className="border-b p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <h2 className="text-lg font-semibold">Issues</h2>

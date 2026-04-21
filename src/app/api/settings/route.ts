@@ -26,6 +26,32 @@ function getDefaultSettings() {
       allowWeekend: false,
       lockAfterDays: 3,
     },
+    issue: {
+      requireOwnerToStartProgress: true,
+      requireOwnerToResolve: true,
+      allowReopenClosed: true,
+      slaHoursLow: 72,
+      slaHoursMedium: 24,
+      slaHoursHigh: 8,
+      slaHoursCritical: 4,
+    },
+    reports: {
+      showIssueMetrics: true,
+      showLeaveMetrics: true,
+      showTimesheetMetrics: true,
+      maxRecentMonths: 6,
+    },
+    calendar: {
+      showPendingLeave: true,
+      allowEmployeeTeamCalendarView: false,
+      upcomingDays: 30,
+    },
+    notifications: {
+      enableIssueAlerts: true,
+      enableLeaveAlerts: true,
+      criticalIssuesOnly: false,
+      maxItems: 20,
+    },
   };
 }
 
@@ -48,6 +74,22 @@ function mergeDefaults(data: any) {
     timesheet: {
       ...defaults.timesheet,
       ...(data?.timesheet || {}),
+    },
+    issue: {
+      ...defaults.issue,
+      ...(data?.issue || {}),
+    },
+    reports: {
+      ...defaults.reports,
+      ...(data?.reports || {}),
+    },
+    calendar: {
+      ...defaults.calendar,
+      ...(data?.calendar || {}),
+    },
+    notifications: {
+      ...defaults.notifications,
+      ...(data?.notifications || {}),
     },
   };
 }

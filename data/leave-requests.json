@@ -58,30 +58,69 @@
       "submittedAt": "2026-04-17T00:37:51.212Z",
       "createdAt": "2026-04-17T00:37:51.212Z",
       "updatedAt": "2026-04-17T00:37:51.212Z"
+    },
+    {
+      "id": "f3b17256-608e-4496-8fbf-ab6a2dc23343",
+      "employeeId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "employeeName": "System Administrator",
+      "leaveTypeId": "L001",
+      "leaveTypeName": "Annual Leave",
+      "startDate": "2026-04-21",
+      "endDate": "2026-04-21",
+      "startPortion": "full",
+      "endPortion": "full",
+      "totalDays": 1,
+      "status": "pending",
+      "approver": {
+        "role": "lead"
+      },
+      "submittedAt": "2026-04-21T10:00:49.805Z",
+      "createdAt": "2026-04-21T10:00:49.805Z",
+      "updatedAt": "2026-04-21T10:00:49.805Z"
+    },
+    {
+      "id": "e6e01e87-a570-4e90-87da-f0749835e96e",
+      "employeeId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "employeeName": "System Administrator",
+      "leaveTypeId": "L003",
+      "leaveTypeName": "Sick Leave",
+      "startDate": "2026-04-22",
+      "endDate": "2026-04-22",
+      "startPortion": "full",
+      "endPortion": "full",
+      "totalDays": 1,
+      "status": "approved",
+      "approver": {
+        "role": "lead"
+      },
+      "submittedAt": "2026-04-21T10:09:01.305Z",
+      "approvedAt": "2026-04-21T10:09:01.305Z",
+      "createdAt": "2026-04-21T10:09:01.305Z",
+      "updatedAt": "2026-04-21T10:09:01.305Z"
     }
   ],
   "quotaBalances": [
     {
       "leaveTypeId": "L001",
-      "entitledDays": 12,
+      "entitledDays": 10,
       "carriedForwardDays": 0,
       "usedDays": 0,
-      "pendingDays": 0,
-      "remainingDays": 12,
-      "asOfDate": "2026-04-17",
+      "pendingDays": 1,
+      "remainingDays": 9,
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L003",
       "entitledDays": 30,
       "carriedForwardDays": 0,
-      "usedDays": 0,
+      "usedDays": 1,
       "pendingDays": 1,
-      "remainingDays": 29,
-      "asOfDate": "2026-04-17",
+      "remainingDays": 28,
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L004",
@@ -90,9 +129,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 3,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L005",
@@ -100,9 +139,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L006",
@@ -110,9 +149,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L007",
@@ -120,9 +159,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L008",
@@ -130,9 +169,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L009",
@@ -140,9 +179,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L010",
@@ -150,9 +189,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L011",
@@ -160,9 +199,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L012",
@@ -170,9 +209,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L013",
@@ -180,9 +219,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     },
     {
       "leaveTypeId": "L014",
@@ -190,9 +229,9 @@
       "usedDays": 0,
       "pendingDays": 0,
       "remainingDays": 0,
-      "asOfDate": "2026-04-17",
+      "asOfDate": "2026-04-21",
       "source": "manual",
-      "updatedAt": "2026-04-17T00:37:51.217Z"
+      "updatedAt": "2026-04-21T10:09:01.310Z"
     }
   ]
 }

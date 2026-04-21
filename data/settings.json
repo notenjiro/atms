@@ -1,0 +1,22 @@
+{
+  "general": {
+    "workspaceName": "ATMS Support",
+    "timeZone": "Asia/Bangkok",
+    "workHoursPerDay": 8,
+    "dateFormat": "DD/MM/YYYY"
+  },
+  "users": {
+    "defaultRole": "staff",
+    "leadRole": "lead"
+  },
+  "leave": {
+    "annual": 10,
+    "sick": 30,
+    "requireApproval": false
+  },
+  "timesheet": {
+    "hoursPerDay": 8,
+    "allowWeekend": false,
+    "lockAfterDays": 30
+  }
+}

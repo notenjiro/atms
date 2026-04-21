@@ -1,3 +1,4 @@
+// src/components/leave/create-leave-form.tsx
 "use client";
 
 import { useMemo, useState } from "react";
@@ -11,6 +12,7 @@ type CreateLeaveFormProps = {
   employeeName: string;
   approverName?: string;
   approverEmail?: string;
+  requireApproval?: boolean;
   className?: string;
 };
 
@@ -62,6 +64,7 @@ export function CreateLeaveForm({
   employeeName,
   approverName,
   approverEmail,
+  requireApproval = true,
   className,
 }: CreateLeaveFormProps) {
   const router = useRouter();
@@ -133,7 +136,11 @@ export function CreateLeaveForm({
         return;
       }
 
-      setSuccessMessage("Leave request created successfully.");
+      setSuccessMessage(
+        requireApproval
+          ? "Leave request created successfully and sent for approval."
+          : "Leave request created and approved automatically.",
+      );
       resetForm();
       setIsExpanded(false);
       router.refresh();
@@ -161,8 +168,9 @@ export function CreateLeaveForm({
             New leave request
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Submit leave with full-day or half-day selections and send it into
-            the lead approval flow.
+            {requireApproval
+              ? "Submit leave with full-day or half-day selections and send it into the lead approval flow."
+              : "Submit leave with full-day or half-day selections. Requests are approved automatically based on current settings."}
           </p>
         </div>
 
@@ -175,7 +183,11 @@ export function CreateLeaveForm({
             setSuccessMessage("");
           }}
         >
-          {isExpanded ? "Close form" : "Request leave"}
+          {isExpanded
+            ? "Close form"
+            : requireApproval
+              ? "Request leave"
+              : "Create leave"}
         </Button>
       </div>
 
@@ -300,7 +312,11 @@ export function CreateLeaveForm({
 
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" disabled={!canSubmit || isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit leave request"}
+              {isSubmitting
+                ? "Submitting..."
+                : requireApproval
+                  ? "Submit leave request"
+                  : "Create leave request"}
             </Button>
 
             <Button type="button" variant="outline" onClick={resetForm}>

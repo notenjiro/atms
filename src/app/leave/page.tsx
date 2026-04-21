@@ -1,3 +1,4 @@
+// src/app/leave/page.tsx
 import { redirect } from "next/navigation";
 import { CalendarDays, CheckCircle2, Clock3 } from "lucide-react";
 
@@ -126,13 +127,15 @@ export default async function LeavePage() {
   const canManageApproval =
     normalizedRole === "lead" || normalizedRole.includes("lead");
 
-  const { summary, requests, calendarEvents } = await getLeaveBootstrapService(
-    canManageApproval ? undefined : session.userId,
-  );
+  const { summary, requests, calendarEvents, leavePolicySettings } =
+    await getLeaveBootstrapService(
+      canManageApproval ? undefined : session.userId,
+    );
 
-  const pendingForApproval = canManageApproval
-    ? requests.filter((item) => item.status === "pending")
-    : [];
+  const pendingForApproval =
+    canManageApproval && leavePolicySettings.requireApproval
+      ? requests.filter((item) => item.status === "pending")
+      : [];
 
   return (
     <div className="glass-panel-leave">
@@ -149,6 +152,7 @@ export default async function LeavePage() {
             employeeName={session.fullName}
             approverName={canManageApproval ? session.fullName : undefined}
             approverEmail={canManageApproval ? session.email : undefined}
+            requireApproval={leavePolicySettings.requireApproval}
           />
 
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -182,7 +186,7 @@ export default async function LeavePage() {
             />
           </section>
 
-          {canManageApproval ? (
+          {canManageApproval && leavePolicySettings.requireApproval ? (
             <section className="glass-panel-leave rounded-[28px] border border-orange-200/70 p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
@@ -244,6 +248,8 @@ export default async function LeavePage() {
             canManageApproval={canManageApproval}
             currentUserId={session.userId}
           />
+
+          <LeaveCalendar events={calendarEvents} />
         </div>
       </AppShell>
     </div>

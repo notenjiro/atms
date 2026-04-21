@@ -261,7 +261,7 @@ export default function CreateIssueForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 rounded-xl border bg-white p-4"
+      className="glass-panel-issue space-y-4 rounded-xl border bg-white p-4"
     >
       <div>
         <h2 className="text-lg font-semibold text-gray-900">Create Issue</h2>

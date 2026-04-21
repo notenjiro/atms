@@ -1,3 +1,4 @@
+// src/modules/timesheet/timesheet.types.ts
 export type TimesheetStatus =
   | "draft"
   | "submitted"
@@ -11,6 +12,12 @@ export type TimesheetUnit = "hour" | "day";
 export type TimesheetApprovalRole = "lead";
 
 export type TimesheetViewMode = "my-timesheets" | "team-approval";
+
+export type TimesheetPolicySettings = {
+  hoursPerDay: number;
+  allowWeekend: boolean;
+  lockAfterDays: number;
+};
 
 export type TimesheetEntry = {
   id: string;
@@ -107,6 +114,7 @@ export type TimesheetBootstrap = {
   dailySummaries: TimesheetDailySummary[];
   overview: TimesheetOverviewSummary;
   approval: TimesheetApprovalSummary;
+  policy: TimesheetPolicySettings;
 };
 
 export type TimesheetsFile = {
