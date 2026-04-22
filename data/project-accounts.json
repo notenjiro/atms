@@ -46,6 +46,466 @@
       },
       "createdAt": "2026-04-16T07:08:27.336Z",
       "updatedAt": "2026-04-16T07:08:27.336Z"
+    },
+    {
+      "id": "bb516ea0-67c1-4fc9-9020-180cb2b3be00",
+      "code": "ACC-00004",
+      "projectName": "OFF: Management-General",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-970",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.214Z",
+      "updatedAt": "2026-04-22T02:20:17.214Z"
+    },
+    {
+      "id": "a0c51a86-1607-47eb-9f88-c3926bb18b4e",
+      "code": "ACC-00005",
+      "projectName": "OFF: Research & Self Study",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-960",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.221Z",
+      "updatedAt": "2026-04-22T02:20:17.221Z"
+    },
+    {
+      "id": "831212f8-792d-40a3-a1da-3cbfe4ff1ea7",
+      "code": "ACC-00006",
+      "projectName": "OFF: Meeting - Internal",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-950",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.230Z",
+      "updatedAt": "2026-04-22T02:20:17.230Z"
+    },
+    {
+      "id": "8e8c4a3d-6307-4c23-8b30-0e7b5fb93138",
+      "code": "ACC-00007",
+      "projectName": "OFF: Training - Inhouse",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-943",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.234Z",
+      "updatedAt": "2026-04-22T02:20:17.234Z"
+    },
+    {
+      "id": "53319380-bdaa-4880-a869-318614aeba32",
+      "code": "ACC-00008",
+      "projectName": "OFF: Training - Ext - Domestic",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-942",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.236Z",
+      "updatedAt": "2026-04-22T02:20:17.236Z"
+    },
+    {
+      "id": "faee117e-3f68-433e-b529-7dde404c434d",
+      "code": "ACC-00009",
+      "projectName": "OFF: Training - Ext - Oversea",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-941",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.239Z",
+      "updatedAt": "2026-04-22T02:20:17.239Z"
+    },
+    {
+      "id": "78909f0a-eac8-4c00-b01b-f776f18ecaf0",
+      "code": "ACC-00010",
+      "projectName": "OFF: HR Activities",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-940",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.241Z",
+      "updatedAt": "2026-04-22T02:20:17.241Z"
+    },
+    {
+      "id": "4f433b82-0f80-4581-ba52-59998af4de4d",
+      "code": "ACC-00011",
+      "projectName": "OFF: Presales",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-930",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.244Z",
+      "updatedAt": "2026-04-22T02:20:17.244Z"
+    },
+    {
+      "id": "ca0f3cd2-fa9b-400f-998b-c7603025a566",
+      "code": "ACC-00012",
+      "projectName": "OFF: Marketing - Event",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-921",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.246Z",
+      "updatedAt": "2026-04-22T02:20:17.246Z"
+    },
+    {
+      "id": "4ffea68b-ecb1-4b34-b986-bf0730b116ac",
+      "code": "ACC-00013",
+      "projectName": "OFF: Marketing - General",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-920",
+      "startDate": "2015-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.248Z",
+      "updatedAt": "2026-04-22T02:20:17.248Z"
+    },
+    {
+      "id": "b475ffaf-3508-4306-af7b-c2e157bafc35",
+      "code": "ACC-00014",
+      "projectName": "OFF: Timesheet: Non working days",
+      "customerName": "Unassigned Client",
+      "contractNo": "20-999-1",
+      "startDate": "2018-12-31",
+      "endDate": "2025-12-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.250Z",
+      "updatedAt": "2026-04-22T02:20:17.250Z"
+    },
+    {
+      "id": "1ec09016-9ad4-43b3-86d5-2da3a4880ccd",
+      "code": "ACC-00015",
+      "projectName": "ECM: Customer Support 2021",
+      "customerName": "บจก. ไอแอม คอนซัลติ้ง",
+      "contractNo": "60376d895c6c8a4533bf76dc",
+      "startDate": "2021-01-01",
+      "endDate": "2021-12-31",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.253Z",
+      "updatedAt": "2026-04-22T02:20:17.253Z"
+    },
+    {
+      "id": "39dfa1d6-7cca-4ed4-9678-d6472bbbe26f",
+      "code": "ACC-00016",
+      "projectName": "Y23 - SPRC Support (20 MD)",
+      "customerName": "บริษัท สตาร์ ปิโตรเลียม รีไฟน์นิ่ง จำกัด (มหาชน)",
+      "contractNo": "10-23-503-02",
+      "startDate": "2023-07-01",
+      "endDate": "2024-07-31",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.255Z",
+      "updatedAt": "2026-04-22T02:20:17.255Z"
+    },
+    {
+      "id": "21a5e901-ecfe-49ca-a12d-a5677ed02799",
+      "code": "ACC-00017",
+      "projectName": "Y23: CIMB Support Service 12 MDs (1 Dec 2023 - 30 Nov 2024)",
+      "customerName": "ธนาคาร ซีไอเอ็มบี ไทย จำกัด (มหาชน)",
+      "contractNo": "10-23-628-02",
+      "startDate": "2023-12-01",
+      "endDate": "2024-11-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.257Z",
+      "updatedAt": "2026-04-22T02:20:17.257Z"
+    },
+    {
+      "id": "59399fa6-877d-4a30-9ae1-7967ef00604e",
+      "code": "ACC-00018",
+      "projectName": "Y23: CIMB: Supprot Service 20 MDs (1/12/2023 - 30/11/2024)",
+      "customerName": "ธนาคาร ซีไอเอ็มบี ไทย จำกัด (มหาชน)",
+      "contractNo": "655d9c577d5b104fc00bac0d",
+      "startDate": "2023-12-01",
+      "endDate": "2024-11-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.259Z",
+      "updatedAt": "2026-04-22T02:20:17.259Z"
+    },
+    {
+      "id": "91e68953-69c7-4673-88ea-acae0790fa3a",
+      "code": "ACC-00019",
+      "projectName": "Y23: CIMB: Support Service 20 MDs (1/12/2023 - 30/11/2024)",
+      "customerName": "ธนาคาร ซีไอเอ็มบี ไทย จำกัด (มหาชน)",
+      "contractNo": "10-24-628-02",
+      "startDate": "2023-12-01",
+      "endDate": "2024-11-30",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.261Z",
+      "updatedAt": "2026-04-22T02:20:17.261Z"
+    },
+    {
+      "id": "b4da82f7-70fb-41c8-a7f0-ff92c6032e3b",
+      "code": "ACC-00020",
+      "projectName": "Y23: TOP: Support Service 30MDs (01/01/2024 - 31/12/2024)",
+      "customerName": "บริษัท ไทยออยล์ จำกัด (มหาชน)",
+      "contractNo": "10-24-701-02",
+      "startDate": "2024-01-01",
+      "endDate": "2024-12-31",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.264Z",
+      "updatedAt": "2026-04-22T02:20:17.264Z"
+    },
+    {
+      "id": "2f1ab435-db08-42cd-917f-ae6721962662",
+      "code": "ACC-00021",
+      "projectName": "Y24: TU: Support Service 10MDs (01/01/2024 - 31/12/2024)",
+      "customerName": "บริษัท ไทยยูเนี่ยน กรุ๊ป จำกัด (มหาชน)",
+      "contractNo": "10-24-579-02",
+      "startDate": "2024-01-01",
+      "endDate": "2024-12-31",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.267Z",
+      "updatedAt": "2026-04-22T02:20:17.267Z"
+    },
+    {
+      "id": "4e88e68d-0d7d-40bc-a16f-6b71ba180554",
+      "code": "ACC-00022",
+      "projectName": "Y24: SCGI: Support Service 40MDs (01/01/2024 - 31/12/2024)",
+      "customerName": "-",
+      "contractNo": "10-24-607-02",
+      "startDate": "2024-01-01",
+      "endDate": "2024-12-31",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.269Z",
+      "updatedAt": "2026-04-22T02:20:17.269Z"
+    },
+    {
+      "id": "9e5eb757-9721-4461-b924-7a85cc5e61fa",
+      "code": "ACC-00023",
+      "projectName": "Y24: BEM: Support Service 10MDs (01/03/2024 - 28/02/2025)",
+      "customerName": "บริษัท ทางด่วนและรถไฟฟ้ากรุงเทพ จำกัด ( มหาชน )",
+      "contractNo": "10-24-652-02",
+      "startDate": "2024-03-01",
+      "endDate": "2025-02-28",
+      "allocatedManDays": 0,
+      "usedManDays": 0,
+      "remainingManDays": 0,
+      "status": "expired",
+      "alertSettings": {
+        "enabled": false,
+        "daysBeforeExpiry": 30,
+        "channels": [
+          "email"
+        ],
+        "recipients": []
+      },
+      "createdAt": "2026-04-22T02:20:17.271Z",
+      "updatedAt": "2026-04-22T02:20:17.271Z"
     }
   ]
 }

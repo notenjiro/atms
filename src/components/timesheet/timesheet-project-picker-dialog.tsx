@@ -20,8 +20,16 @@ type TimesheetProjectPickerDialogProps = {
   onSelect: (project: TimesheetProjectPickerItem) => void;
 };
 
-type BootstrapResponse = {
-  items?: TimesheetProjectPickerItem[];
+type SearchResponseItem = {
+  id: string;
+  projectName?: string;
+  customerName?: string;
+  contractNo?: string;
+};
+
+type SearchResponse = {
+  success?: boolean;
+  data?: SearchResponseItem[] | null;
 };
 
 export function TimesheetProjectPickerDialog({
@@ -36,34 +44,63 @@ export function TimesheetProjectPickerDialog({
 
   useEffect(() => {
     if (!open) {
+      setItems([]);
+      setSearch("");
+      setTab("all");
+      return;
+    }
+
+    if (!search.trim()) {
+      setItems([]);
+      setIsLoading(false);
       return;
     }
 
     let cancelled = false;
 
-    async function loadProjects() {
+    async function searchProjects() {
       try {
         setIsLoading(true);
 
-        const response = await fetch("/api/timesheet-projects/bootstrap", {
-          cache: "no-store",
-        });
+        const response = await fetch(
+          `/project-accounts/search?q=${encodeURIComponent(search.trim())}`,
+          {
+            cache: "no-store",
+          },
+        );
 
-        const result = (await response.json().catch(() => ({}))) as BootstrapResponse;
+        const result = (await response.json().catch(() => ({}))) as SearchResponse;
 
         if (!response.ok) {
-          throw new Error("Unable to load timesheet projects.");
+          throw new Error("Unable to search project accounts.");
         }
 
+        const rawItems = Array.isArray(result.data) ? result.data : [];
+
+        const normalizedItems: TimesheetProjectPickerItem[] = rawItems.map(
+          (item) => ({
+            id: String(item.id ?? ""),
+            code: String(item.contractNo ?? item.id ?? ""),
+            name: String(item.projectName ?? ""),
+            customerName: item.customerName ? String(item.customerName) : "",
+            isChargeable: true,
+          }),
+        );
+
         if (!cancelled) {
-          setItems(result.items ?? []);
+          setItems(normalizedItems);
         }
       } catch (error) {
         console.error(error);
+
+        if (!cancelled) {
+          setItems([]);
+        }
+
         toast.error(
           error instanceof Error
             ? error.message
-            : "Unable to load timesheet projects.",
+            : "Unable to search project accounts.",
         );
       } finally {
         if (!cancelled) {
@@ -72,12 +109,15 @@ export function TimesheetProjectPickerDialog({
       }
     }
 
-    loadProjects();
+    const timeout = setTimeout(() => {
+      searchProjects();
+    }, 300);
 
     return () => {
       cancelled = true;
+      clearTimeout(timeout);
     };
-  }, [open]);
+  }, [open, search]);
 
   const filteredItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -112,8 +152,8 @@ export function TimesheetProjectPickerDialog({
               Add project to timesheet
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Select a project code first, then add sub-task rows under that
-              project in the monthly board.
+              Search by project name, customer, or contract number and add the
+              selected project to the monthly board.
             </p>
           </div>
 
@@ -133,7 +173,7 @@ export function TimesheetProjectPickerDialog({
               <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search project code, name, or customer"
+                placeholder="Search project name, customer, or contract number"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 className="block w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
@@ -162,11 +202,17 @@ export function TimesheetProjectPickerDialog({
           <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
             {isLoading ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
-                Loading projects...
+                Searching projects...
               </div>
             ) : null}
 
-            {!isLoading && filteredItems.length === 0 ? (
+            {!isLoading && search.trim() === "" ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
+                Start typing to search projects.
+              </div>
+            ) : null}
+
+            {!isLoading && search.trim() !== "" && filteredItems.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
                 No projects match the current search.
               </div>
