@@ -6,11 +6,40 @@ import {
 } from "./timesheet-month.repository";
 import type {
   TimesheetMonth,
+  TimesheetMonthProjectConfig,
   TimesheetMonthStatus,
 } from "./timesheet-month.types";
 
 function getNowIsoString(): string {
   return new Date().toISOString();
+}
+
+function normalizeProjectConfigs(
+  projectConfigs?: TimesheetMonthProjectConfig[],
+): TimesheetMonthProjectConfig[] | undefined {
+  if (!Array.isArray(projectConfigs)) {
+    return undefined;
+  }
+
+  const normalized = projectConfigs
+    .map((item) => ({
+      projectRefId: item.projectRefId.trim(),
+      projectCode: item.projectCode.trim(),
+      projectName: item.projectName.trim(),
+      selectedApproverId: item.selectedApproverId?.trim() || undefined,
+      selectedApproverName: item.selectedApproverName?.trim() || undefined,
+      approverOptions: Array.isArray(item.approverOptions)
+        ? item.approverOptions
+            .map((option) => ({
+              id: option.id.trim(),
+              name: option.name.trim(),
+            }))
+            .filter((option) => option.id && option.name)
+        : [],
+    }))
+    .filter((item) => item.projectRefId && item.projectCode && item.projectName);
+
+  return normalized;
 }
 
 function buildTimesheetMonthRecord(
@@ -19,13 +48,16 @@ function buildTimesheetMonthRecord(
   status: TimesheetMonthStatus,
   existing?: TimesheetMonth | null,
   rejectedReason?: string,
+  projectConfigs?: TimesheetMonthProjectConfig[],
 ): TimesheetMonth {
   const now = getNowIsoString();
+  const nextProjectConfigs = normalizeProjectConfigs(projectConfigs) ?? existing?.projectConfigs;
 
   return {
     employeeId,
     month,
     status,
+    projectConfigs: nextProjectConfigs,
     submittedAt:
       status === "submitted"
         ? existing?.submittedAt ?? now
@@ -55,6 +87,7 @@ export async function getTimesheetMonthStatusService(
 export async function saveTimesheetMonthDraftService(
   employeeId: string,
   month: string,
+  projectConfigs?: TimesheetMonthProjectConfig[],
 ): Promise<TimesheetMonth> {
   const existing = await findTimesheetMonth(employeeId, month);
 
@@ -63,6 +96,8 @@ export async function saveTimesheetMonthDraftService(
     month,
     "draft",
     existing,
+    undefined,
+    projectConfigs,
   );
 
   return upsertTimesheetMonth(record);
@@ -71,6 +106,7 @@ export async function saveTimesheetMonthDraftService(
 export async function submitTimesheetMonthService(
   employeeId: string,
   month: string,
+  projectConfigs?: TimesheetMonthProjectConfig[],
 ): Promise<TimesheetMonth> {
   const existing = await findTimesheetMonth(employeeId, month);
 
@@ -83,6 +119,8 @@ export async function submitTimesheetMonthService(
     month,
     "submitted",
     existing,
+    undefined,
+    projectConfigs,
   );
 
   return upsertTimesheetMonth(record);

@@ -17,13 +17,31 @@ import type {
   KawariProjectSyncPreviewItem,
 } from "./kawari.types";
 
-type KawariProjectsResponse = {
-  projects?: KawariProjectRaw[];
-};
+type KawariProjectsResponse =
+  | KawariProjectRaw[]
+  | {
+      projects?: KawariProjectRaw[];
+      items?: KawariProjectRaw[];
+      data?:
+        | KawariProjectRaw[]
+        | {
+            projects?: KawariProjectRaw[];
+            items?: KawariProjectRaw[];
+          };
+    };
 
-type KawariClientsResponse = {
-  clients?: KawariClientRaw[];
-};
+type KawariClientsResponse =
+  | KawariClientRaw[]
+  | {
+      clients?: KawariClientRaw[];
+      items?: KawariClientRaw[];
+      data?:
+        | KawariClientRaw[]
+        | {
+            clients?: KawariClientRaw[];
+            items?: KawariClientRaw[];
+          };
+    };
 
 function asTrimmedString(value: unknown): string {
   if (typeof value !== "string") {
@@ -51,6 +69,40 @@ function normalizeDate(value: string): string {
   return parsed.toISOString().slice(0, 10);
 }
 
+function getSafeStartDate(raw: KawariProjectRaw): string {
+  const candidates = [
+    asTrimmedString(raw.start_date),
+    asTrimmedString((raw as Record<string, unknown>).contract_start_date),
+    asTrimmedString((raw as Record<string, unknown>).created),
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeDate(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return "2000-01-01";
+}
+
+function getSafeEndDate(raw: KawariProjectRaw): string {
+  const candidates = [
+    asTrimmedString(raw.end_date),
+    asTrimmedString((raw as Record<string, unknown>).contract_end_date),
+    asTrimmedString((raw as Record<string, unknown>).updated),
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeDate(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return "2099-12-31";
+}
+
 function normalizeClientDisplayName(client: KawariClientRaw | null): string {
   if (!client) {
     return "Unknown Client";
@@ -62,22 +114,142 @@ function normalizeClientDisplayName(client: KawariClientRaw | null): string {
   return thaiName || englishName || "Unknown Client";
 }
 
+function extractProjectsPayload(
+  payload: KawariProjectsResponse,
+): KawariProjectRaw[] {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (Array.isArray(payload.projects)) {
+    return payload.projects;
+  }
+
+  if (Array.isArray(payload.items)) {
+    return payload.items;
+  }
+
+  if (Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  if (payload.data && typeof payload.data === "object") {
+    const nested = payload.data as {
+      projects?: KawariProjectRaw[];
+      items?: KawariProjectRaw[];
+    };
+
+    if (Array.isArray(nested.projects)) {
+      return nested.projects;
+    }
+
+    if (Array.isArray(nested.items)) {
+      return nested.items;
+    }
+  }
+
+  return [];
+}
+
+function extractClientsPayload(
+  payload: KawariClientsResponse,
+): KawariClientRaw[] {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (Array.isArray(payload.clients)) {
+    return payload.clients;
+  }
+
+  if (Array.isArray(payload.items)) {
+    return payload.items;
+  }
+
+  if (Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  if (payload.data && typeof payload.data === "object") {
+    const nested = payload.data as {
+      clients?: KawariClientRaw[];
+      items?: KawariClientRaw[];
+    };
+
+    if (Array.isArray(nested.clients)) {
+      return nested.clients;
+    }
+
+    if (Array.isArray(nested.items)) {
+      return nested.items;
+    }
+  }
+
+  return [];
+}
+
+function extractProjectCode(project: KawariProjectRaw): string {
+  const directCode = asTrimmedString(project.project_code);
+
+  if (directCode) {
+    return directCode;
+  }
+
+  const altContractNo = asTrimmedString(
+    (project as Record<string, unknown>).contract_no,
+  );
+
+  if (altContractNo) {
+    return altContractNo;
+  }
+
+  const altCode = asTrimmedString(
+    (project as Record<string, unknown>).code,
+  );
+
+  if (altCode) {
+    return altCode;
+  }
+
+  return "";
+}
+
+function buildClientMap(
+  clients: KawariClientRaw[],
+): Map<string, KawariClientRaw> {
+  const map = new Map<string, KawariClientRaw>();
+
+  for (const client of clients) {
+    const id = asTrimmedString(client._id);
+
+    if (!id) {
+      continue;
+    }
+
+    map.set(id, client);
+  }
+
+  return map;
+}
+
 function normalizeProjectCandidate(
   project: KawariProjectRaw,
   client: KawariClientRaw | null,
 ): KawariProjectCandidate | null {
   const externalId = asTrimmedString(project._id);
-  const projectCode = asTrimmedString(project.project_code);
+  const projectCode = extractProjectCode(project);
   const projectName = asTrimmedString(project.name);
   const projectStatus = asTrimmedString(project.project_status);
   const projectType = asTrimmedString(project.project_type);
-  const startDate = normalizeDate(asTrimmedString(project.start_date));
-  const endDate = normalizeDate(asTrimmedString(project.end_date));
+  const startDate = getSafeStartDate(project);
+  const endDate = getSafeEndDate(project);
   const clientId = asTrimmedString(project.client_id);
   const primaryProjectManagerName = asTrimmedString(
     project.key_project_manager,
   );
-  const primaryProjectManagerId = asTrimmedString(project.key_project_manager_id);
+  const primaryProjectManagerId = asTrimmedString(
+    project.key_project_manager_id,
+  );
   const projectManagerIds = Array.isArray(project.project_manager_ids)
     ? project.project_manager_ids
         .map((item: string) => asTrimmedString(item))
@@ -85,7 +257,7 @@ function normalizeProjectCandidate(
     : [];
   const canEditInKawari = Boolean(project.can_edit);
 
-  if (!externalId || !projectName || !startDate || !endDate) {
+  if (!externalId || !projectName) {
     return null;
   }
 
@@ -109,20 +281,51 @@ function normalizeProjectCandidate(
   };
 }
 
-function buildClientMap(clients: KawariClientRaw[]): Map<string, KawariClientRaw> {
-  const map = new Map<string, KawariClientRaw>();
+function buildPreviewDedupeKey(candidate: KawariProjectCandidate): string {
+  return `${candidate.externalId.toLowerCase()}::${candidate.projectCode.toLowerCase()}`;
+}
 
-  for (const client of clients) {
-    const id = asTrimmedString(client._id);
+function dedupeCandidates(
+  items: KawariProjectCandidate[],
+): KawariProjectCandidate[] {
+  const deduped = new Map<string, KawariProjectCandidate>();
 
-    if (!id) {
+  for (const item of items) {
+    const key = buildPreviewDedupeKey(item);
+
+    if (!deduped.has(key)) {
+      deduped.set(key, item);
       continue;
     }
 
-    map.set(id, client);
+    const existing = deduped.get(key)!;
+
+    deduped.set(key, {
+      ...existing,
+      projectCode: existing.projectCode || item.projectCode,
+      projectStatus: existing.projectStatus || item.projectStatus,
+      projectType: existing.projectType || item.projectType,
+      startDate:
+        existing.startDate !== "2000-01-01" ? existing.startDate : item.startDate,
+      endDate:
+        existing.endDate !== "2099-12-31" ? existing.endDate : item.endDate,
+      customerName:
+        existing.customerName !== "Unknown Client"
+          ? existing.customerName
+          : item.customerName,
+      clientCode: existing.clientCode || item.clientCode,
+      primaryProjectManagerName:
+        existing.primaryProjectManagerName || item.primaryProjectManagerName,
+      primaryProjectManagerId:
+        existing.primaryProjectManagerId || item.primaryProjectManagerId,
+      projectManagerIds: Array.from(
+        new Set([...existing.projectManagerIds, ...item.projectManagerIds]),
+      ),
+      canEditInKawari: existing.canEditInKawari || item.canEditInKawari,
+    });
   }
 
-  return map;
+  return [...deduped.values()];
 }
 
 function findExistingProjectAccount(
@@ -131,13 +334,9 @@ function findExistingProjectAccount(
 ): ProjectAccount | null {
   const externalIdKey = candidate.externalId.toLowerCase();
   const projectCodeKey = candidate.projectCode.toLowerCase();
-  const projectNameKey = candidate.projectName.toLowerCase();
-  const customerNameKey = candidate.customerName.toLowerCase();
 
   const byExternalId = items.find((item) => {
-    const maybeExternalId = String(
-      (item as Record<string, unknown>).externalId ?? "",
-    )
+    const maybeExternalId = String(item.externalId ?? "")
       .trim()
       .toLowerCase();
 
@@ -148,77 +347,42 @@ function findExistingProjectAccount(
     return byExternalId;
   }
 
-  const byProjectCode = items.find((item) => {
-    const itemContract = String(
-      (item as Record<string, unknown>).contractNo ?? "",
-    )
-      .trim()
-      .toLowerCase();
-
-    return projectCodeKey && itemContract === projectCodeKey;
-  });
-
-  if (byProjectCode) {
-    return byProjectCode;
+  if (!projectCodeKey) {
+    return null;
   }
 
-  const byNameAndCustomer = items.find((item) => {
-    const itemProjectName = String(
-      (item as Record<string, unknown>).projectName ?? "",
-    )
-      .trim()
-      .toLowerCase();
-    const itemCustomerName = String(
-      (item as Record<string, unknown>).customerName ?? "",
-    )
+  const byProjectCode = items.find((item) => {
+    const itemContract = String(item.contractNo ?? "")
       .trim()
       .toLowerCase();
 
-    return itemProjectName === projectNameKey && itemCustomerName === customerNameKey;
+    return itemContract === projectCodeKey;
   });
 
-  return byNameAndCustomer ?? null;
+  return byProjectCode ?? null;
 }
 
 function hasProjectChanges(
   existing: ProjectAccount,
   candidate: KawariProjectCandidate,
 ): boolean {
-  const maybeExternalId = String(
-    (existing as Record<string, unknown>).externalId ?? "",
-  ).trim();
-  const maybeClientId = String(
-    (existing as Record<string, unknown>).clientId ?? "",
-  ).trim();
-  const maybeProjectStatus = String(
-    (existing as Record<string, unknown>).projectStatus ?? "",
-  ).trim();
-  const maybeProjectType = String(
-    (existing as Record<string, unknown>).projectType ?? "",
-  ).trim();
-  const maybePrimaryPmName = String(
-    (existing as Record<string, unknown>).primaryProjectManagerName ?? "",
-  ).trim();
-  const maybePrimaryPmId = String(
-    (existing as Record<string, unknown>).primaryProjectManagerId ?? "",
-  ).trim();
-  const maybeClientCode = String(
-    (existing as Record<string, unknown>).clientCode ?? "",
-  ).trim();
-
   return (
     existing.projectName !== candidate.projectName ||
     existing.customerName !== candidate.customerName ||
-    existing.contractNo !== candidate.projectCode ||
+    existing.contractNo !== (candidate.projectCode || candidate.externalId) ||
     existing.startDate !== candidate.startDate ||
     existing.endDate !== candidate.endDate ||
-    maybeExternalId !== candidate.externalId ||
-    maybeClientId !== candidate.clientId ||
-    maybeProjectStatus !== candidate.projectStatus ||
-    maybeProjectType !== candidate.projectType ||
-    maybePrimaryPmName !== candidate.primaryProjectManagerName ||
-    maybePrimaryPmId !== candidate.primaryProjectManagerId ||
-    maybeClientCode !== candidate.clientCode
+    (existing.externalId ?? "") !== candidate.externalId ||
+    (existing.clientId ?? "") !== candidate.clientId ||
+    (existing.projectStatus ?? "") !== candidate.projectStatus ||
+    (existing.projectType ?? "") !== candidate.projectType ||
+    (existing.primaryProjectManagerName ?? "") !==
+      candidate.primaryProjectManagerName ||
+    (existing.primaryProjectManagerId ?? "") !==
+      candidate.primaryProjectManagerId ||
+    (existing.clientCode ?? "") !== candidate.clientCode ||
+    JSON.stringify(existing.projectManagerIds ?? []) !==
+      JSON.stringify(candidate.projectManagerIds)
   );
 }
 
@@ -254,26 +418,23 @@ async function fetchKawariProjectsAndClients(
     }),
   ]);
 
-  const rawProjects: KawariProjectRaw[] = Array.isArray(projectsResponse.data?.projects)
-    ? projectsResponse.data.projects
-    : [];
-  const rawClients: KawariClientRaw[] = Array.isArray(clientsResponse.data?.clients)
-    ? clientsResponse.data.clients
-    : [];
-
+  const rawProjects = extractProjectsPayload(projectsResponse.data);
+  const rawClients = extractClientsPayload(clientsResponse.data);
   const clientMap = buildClientMap(rawClients);
 
-  const candidates: KawariProjectCandidate[] = rawProjects
-    .map((project: KawariProjectRaw) => {
-      const clientId = asTrimmedString(project.client_id);
-      const client = clientMap.get(clientId) ?? null;
+  const candidates = dedupeCandidates(
+    rawProjects
+      .map((project) => {
+        const clientId = asTrimmedString(project.client_id);
+        const client = clientMap.get(clientId) ?? null;
 
-      return normalizeProjectCandidate(project, client);
-    })
-    .filter(
-      (item: KawariProjectCandidate | null): item is KawariProjectCandidate =>
-        item !== null,
-    );
+        return normalizeProjectCandidate(project, client);
+      })
+      .filter(
+        (item: KawariProjectCandidate | null): item is KawariProjectCandidate =>
+          item !== null,
+      ),
+  );
 
   return {
     projectsPath: resolvedProjectsPath,
@@ -294,7 +455,7 @@ export async function previewKawariProjectAccountSync(input?: {
   ]);
 
   const previewItems: KawariProjectSyncPreviewItem[] = fetched.candidates.map(
-    (candidate: KawariProjectCandidate) => {
+    (candidate) => {
       const existing = findExistingProjectAccount(existingItems, candidate);
 
       if (!existing) {
@@ -391,6 +552,10 @@ export async function applyKawariProjectAccountSync(input?: {
       endDate: item.mapped.endDate,
       allocatedManDays: 0,
       usedManDays: 0,
+      status:
+        item.mapped.projectStatus.toUpperCase() === "INACTIVE"
+          ? ("inactive" as const)
+          : ("active" as const),
       externalId: item.mapped.externalId,
       clientId: item.mapped.clientId,
       clientCode: item.mapped.clientCode,
@@ -403,13 +568,13 @@ export async function applyKawariProjectAccountSync(input?: {
     };
 
     if (item.action === "create") {
-      await createProjectAccount(payload as never);
+      await createProjectAccount(payload);
       createdCount += 1;
       continue;
     }
 
     if (item.action === "update" && item.existing) {
-      await editProjectAccount(item.existing.id, payload as never);
+      await editProjectAccount(item.existing.id, payload);
       updatedCount += 1;
       continue;
     }

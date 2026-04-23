@@ -164,6 +164,9 @@ function setCachedToken(token: string): void {
 }
 
 async function loginAndGetFreshToken(): Promise<string> {
+  const usernameField = kawariConfig.loginUsernameField || "email";
+  const passwordField = kawariConfig.loginPasswordField || "password";
+
   const url = buildUrl(kawariConfig.baseUrl, kawariConfig.loginPath);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), kawariConfig.timeoutMs);
@@ -177,8 +180,8 @@ async function loginAndGetFreshToken(): Promise<string> {
       },
       credentials: "include",
       body: JSON.stringify({
-        email: kawariConfig.username,
-        password: kawariConfig.password,
+        [usernameField]: kawariConfig.username,
+        [passwordField]: kawariConfig.password,
       }),
       signal: controller.signal,
       cache: "no-store",
@@ -196,7 +199,7 @@ async function loginAndGetFreshToken(): Promise<string> {
       });
     }
 
-    const tokenValue = readNestedValue(data, "user.access_token");
+    const tokenValue = readNestedValue(data, kawariConfig.tokenField);
 
     if (typeof tokenValue === "string" && tokenValue.trim()) {
       setCachedToken(tokenValue.trim());
@@ -205,6 +208,7 @@ async function loginAndGetFreshToken(): Promise<string> {
 
     throw new ExternalServiceError("Kawari token not found.", {
       path: kawariConfig.loginPath,
+      tokenField: kawariConfig.tokenField,
     });
   } catch (error) {
     if (error instanceof ExternalServiceError) {
@@ -244,7 +248,9 @@ async function getManagedLoginToken(): Promise<string> {
   return kawariTokenState.refreshPromise;
 }
 
-async function getKawariAuthContext(forceRefresh = false): Promise<KawariAuthContext> {
+async function getKawariAuthContext(
+  forceRefresh = false,
+): Promise<KawariAuthContext> {
   if (kawariConfig.authMode === "token") {
     return {
       authorizationHeader: `bearer ${kawariConfig.accessToken.trim()}`,
@@ -330,7 +336,10 @@ async function performKawariRequest<T = unknown>(
       data,
     };
   } catch (error) {
-    if (error instanceof ExternalServiceError || error instanceof ValidationError) {
+    if (
+      error instanceof ExternalServiceError ||
+      error instanceof ValidationError
+    ) {
       throw error;
     }
 

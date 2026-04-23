@@ -28,7 +28,11 @@ export async function readProjectAccountsFile(): Promise<ProjectAccountsFile> {
     return DEFAULT_PROJECT_ACCOUNTS_FILE;
   }
 
-  return parsed.data;
+  const normalized: ProjectAccountsFile = {
+    items: parsed.data.items as ProjectAccount[],
+  };
+
+  return normalized;
 }
 
 export async function listProjectAccounts(): Promise<ProjectAccount[]> {

@@ -5,14 +5,15 @@ import { ok } from "@/lib/respond";
 
 import {
   createProjectAccount,
-  getProjectAccounts,
+  getProjectAccountsView,
 } from "@/modules/project-accounts/project-account.service";
 
 export const GET = withApiHandler(async () => {
-  const items = await getProjectAccounts();
+  const { activeItems, archivedItems } = await getProjectAccountsView();
 
   return ok({
-    items,
+    activeItems,
+    archivedItems,
   });
 });
 

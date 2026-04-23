@@ -1,3 +1,19 @@
 {
-  "items": []
+  "items": [
+    {
+      "employeeId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+      "month": "2026-04",
+      "status": "draft",
+      "projectConfigs": [
+        {
+          "projectRefId": "10-25-142-02-1",
+          "projectCode": "10-25-142-02-1",
+          "projectName": "Y25: PTTOR: Support Service 440 MDs (16/08/2025 - 15/08/2026)",
+          "approverOptions": []
+        }
+      ],
+      "createdAt": "2026-04-22T07:44:43.871Z",
+      "updatedAt": "2026-04-22T07:44:43.871Z"
+    }
+  ]
 }

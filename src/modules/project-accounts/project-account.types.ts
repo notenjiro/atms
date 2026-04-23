@@ -1,4 +1,9 @@
-export type ProjectAccountStatus = "active" | "expired" | "draft" | "inactive";
+export type ProjectAccountStatus =
+  | "active"
+  | "expired"
+  | "draft"
+  | "inactive"
+  | "done";
 
 export type ProjectAccountAlertChannel = "email" | "sms";
 
@@ -18,45 +23,95 @@ export type ProjectAccountAlertSettings = {
 export type ProjectAccount = {
   id: string;
   code: string;
+
   projectName: string;
   customerName: string;
   contractNo: string;
+
   startDate: string;
   endDate: string;
+
   allocatedManDays: number;
   usedManDays: number;
   remainingManDays: number;
+
   status: ProjectAccountStatus;
   note?: string;
+
   alertSettings: ProjectAccountAlertSettings;
+
   archivedAt?: string;
+
   createdAt: string;
   updatedAt: string;
+
+  // Kawari mapping fields
+  externalId?: string;
+  clientId?: string;
+  clientCode?: string;
+  projectStatus?: string;
+  projectType?: string;
+  primaryProjectManagerName?: string;
+  primaryProjectManagerId?: string;
+  projectManagerIds?: string[];
+  canEditInKawari?: boolean;
 };
 
 export type CreateProjectAccountInput = {
   projectName: string;
   customerName: string;
   contractNo: string;
+
   startDate: string;
   endDate: string;
+
   allocatedManDays: number;
   usedManDays?: number;
+
   note?: string;
+
   alertSettings?: Partial<ProjectAccountAlertSettings>;
+
+  // Kawari mapping fields
+  externalId?: string;
+  clientId?: string;
+  clientCode?: string;
+  projectStatus?: string;
+  projectType?: string;
+  primaryProjectManagerName?: string;
+  primaryProjectManagerId?: string;
+  projectManagerIds?: string[];
+  canEditInKawari?: boolean;
 };
 
 export type UpdateProjectAccountInput = Partial<{
   projectName: string;
   customerName: string;
   contractNo: string;
+
   startDate: string;
   endDate: string;
+
   allocatedManDays: number;
   usedManDays: number;
+  remainingManDays: number;
+
   status: ProjectAccountStatus;
   note: string;
+
   alertSettings: ProjectAccountAlertSettings;
+
+  archivedAt: string | undefined;
+
+  externalId: string;
+  clientId: string;
+  clientCode: string;
+  projectStatus: string;
+  projectType: string;
+  primaryProjectManagerName: string;
+  primaryProjectManagerId: string;
+  projectManagerIds: string[];
+  canEditInKawari: boolean;
 }>;
 
 export type ProjectAccountsFile = {

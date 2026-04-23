@@ -1,245 +1,210 @@
-import { ZodError } from "zod";
-
-import { nowIsoDateTime, todayIsoDate } from "@/lib/date";
-import { generateId, generateProjectAccountCode } from "@/lib/id";
-import { NotFoundError, ValidationError } from "@/lib/errors";
-
-import {
-  addProjectAccount,
-  findProjectAccountByCode,
-  findProjectAccountById,
-  listProjectAccounts,
-  updateProjectAccount,
-} from "./project-account.repository";
-import {
-  createProjectAccountSchema,
-  updateProjectAccountSchema,
-} from "./project-account.schemas";
 import type {
   CreateProjectAccountInput,
   ProjectAccount,
-  ProjectAccountAlertSettings,
-  ProjectAccountStatus,
   UpdateProjectAccountInput,
 } from "./project-account.types";
 
-const DEFAULT_ALERT_SETTINGS: ProjectAccountAlertSettings = {
-  enabled: false,
-  daysBeforeExpiry: 30,
-  channels: ["email"],
-  recipients: [],
-};
+import {
+  findProjectAccountById,
+  listProjectAccounts,
+  saveProjectAccounts,
+} from "./project-account.repository";
 
-function roundManDays(value: number): number {
-  return Math.round(value * 100000) / 100000;
+import { NotFoundError } from "@/lib/errors";
+
+function nowIsoDateTime(): string {
+  return new Date().toISOString();
+}
+
+function generateId(): string {
+  return crypto.randomUUID();
+}
+
+function calculateRemaining(
+  allocated: number,
+  used: number,
+): number {
+  return Math.max(allocated - used, 0);
 }
 
 function normalizeAlertSettings(
-  alertSettings?: Partial<ProjectAccountAlertSettings>,
-): ProjectAccountAlertSettings {
+  input?: CreateProjectAccountInput["alertSettings"],
+): ProjectAccount["alertSettings"] {
   return {
-    enabled: alertSettings?.enabled ?? DEFAULT_ALERT_SETTINGS.enabled,
-    daysBeforeExpiry:
-      alertSettings?.daysBeforeExpiry ?? DEFAULT_ALERT_SETTINGS.daysBeforeExpiry,
-    channels:
-      alertSettings?.channels && alertSettings.channels.length > 0
-        ? alertSettings.channels
-        : DEFAULT_ALERT_SETTINGS.channels,
-    recipients: alertSettings?.recipients ?? DEFAULT_ALERT_SETTINGS.recipients,
+    enabled: input?.enabled ?? false,
+    daysBeforeExpiry: input?.daysBeforeExpiry ?? 30,
+    channels: input?.channels ?? [],
+    recipients: input?.recipients ?? [],
   };
 }
 
-function calculateRemainingManDays(
-  allocatedManDays: number,
-  usedManDays: number,
-): number {
-  return roundManDays(allocatedManDays - usedManDays);
+function getArchiveCutoffDate(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + 1, 1);
 }
 
-function deriveStatus(
-  endDate: string,
-  remainingManDays: number,
-): ProjectAccountStatus {
-  const today = todayIsoDate();
+function isArchivedByRule(item: ProjectAccount): boolean {
+  const endDate = new Date(item.endDate);
+  const cutoff = getArchiveCutoffDate();
 
-  if (endDate < today) {
-    return "expired";
-  }
+  const inactiveByStatus =
+    item.status === "done" || item.status === "inactive";
 
-  if (remainingManDays <= 0) {
-    return "inactive";
-  }
+  const expiredByPeriod = endDate.getTime() < cutoff.getTime();
 
-  return "active";
-}
-
-function assertManDayBalance(
-  allocatedManDays: number,
-  usedManDays: number,
-): void {
-  if (usedManDays > allocatedManDays) {
-    throw new ValidationError(
-      "Used man-days cannot exceed allocated man-days.",
-    );
-  }
-}
-
-function formatZodErrors(error: ZodError): string[] {
-  const fieldErrors = error.flatten().fieldErrors as Record<
-    string,
-    string[] | undefined
-  >;
-
-  return Object.entries(fieldErrors).flatMap(([field, messages]) =>
-    (messages ?? []).map((msg: string) => `${field}: ${msg}`),
-  );
+  return Boolean(item.archivedAt) || inactiveByStatus || expiredByPeriod;
 }
 
 function sortProjectAccounts(items: ProjectAccount[]): ProjectAccount[] {
   return [...items].sort((a, b) => {
-    if (a.endDate !== b.endDate) {
-      return a.endDate.localeCompare(b.endDate);
+    const projectCompare = a.projectName.localeCompare(b.projectName);
+    if (projectCompare !== 0) {
+      return projectCompare;
     }
 
-    return a.projectName.localeCompare(b.projectName);
+    return a.contractNo.localeCompare(b.contractNo);
   });
 }
 
 export async function getProjectAccounts(): Promise<ProjectAccount[]> {
-  const items = await listProjectAccounts();
-  const activeItems = items.filter((item) => !item.archivedAt);
-
-  return sortProjectAccounts(activeItems);
+  return listProjectAccounts();
 }
 
-export async function getArchivedProjectAccounts(): Promise<ProjectAccount[]> {
+export async function getProjectAccountsView(): Promise<{
+  allItems: ProjectAccount[];
+  activeItems: ProjectAccount[];
+  archivedItems: ProjectAccount[];
+}> {
   const items = await listProjectAccounts();
-  const archivedItems = items.filter((item) => Boolean(item.archivedAt));
 
-  return sortProjectAccounts(archivedItems);
+  const activeItems: ProjectAccount[] = [];
+  const archivedItems: ProjectAccount[] = [];
+
+  for (const item of items) {
+    if (isArchivedByRule(item)) {
+      archivedItems.push(item);
+    } else {
+      activeItems.push(item);
+    }
+  }
+
+  return {
+    allItems: sortProjectAccounts(items),
+    activeItems: sortProjectAccounts(activeItems),
+    archivedItems: sortProjectAccounts(archivedItems),
+  };
 }
 
 export async function getProjectAccountById(
   id: string,
-): Promise<ProjectAccount | null> {
-  return findProjectAccountById(id);
+): Promise<ProjectAccount> {
+  const item = await findProjectAccountById(id);
+
+  if (!item) {
+    throw new NotFoundError("Project account not found.");
+  }
+
+  return item;
 }
 
 export async function createProjectAccount(
   input: CreateProjectAccountInput,
 ): Promise<ProjectAccount> {
-  const parsed = createProjectAccountSchema.safeParse(input);
+  const items = await listProjectAccounts();
 
-  if (!parsed.success) {
-    throw new ValidationError("Invalid project account payload.", {
-      details: formatZodErrors(parsed.error),
-    });
-  }
+  const allocatedManDays = Number(input.allocatedManDays ?? 0);
+  const usedManDays = Number(input.usedManDays ?? 0);
 
-  const {
-    projectName,
-    customerName,
-    contractNo,
-    startDate,
-    endDate,
-    allocatedManDays,
-    usedManDays = 0,
-    note,
-    alertSettings,
-  } = parsed.data;
+  const newItem: ProjectAccount = {
+    id: generateId(),
+    code: input.contractNo?.trim() || generateId(),
 
-  assertManDayBalance(allocatedManDays, usedManDays);
+    projectName: input.projectName,
+    customerName: input.customerName,
+    contractNo: input.contractNo,
 
-  const existingItems = await listProjectAccounts();
-  const code = generateProjectAccountCode(existingItems.length + 1);
+    startDate: input.startDate,
+    endDate: input.endDate,
 
-  const duplicatedCode = await findProjectAccountByCode(code);
-
-  if (duplicatedCode) {
-    throw new ValidationError(
-      "Unable to generate a unique project account code.",
-    );
-  }
-
-  const remainingManDays = calculateRemainingManDays(
     allocatedManDays,
     usedManDays,
-  );
+    remainingManDays: calculateRemaining(allocatedManDays, usedManDays),
 
-  const timestamp = nowIsoDateTime();
+    status: "active",
+    note: input.note,
 
-  const projectAccount: ProjectAccount = {
-    id: generateId(),
-    code,
-    projectName,
-    customerName,
-    contractNo,
-    startDate,
-    endDate,
-    allocatedManDays: roundManDays(allocatedManDays),
-    usedManDays: roundManDays(usedManDays),
-    remainingManDays,
-    status: deriveStatus(endDate, remainingManDays),
-    note,
-    alertSettings: normalizeAlertSettings(alertSettings),
+    alertSettings: normalizeAlertSettings(input.alertSettings),
+
     archivedAt: undefined,
-    createdAt: timestamp,
-    updatedAt: timestamp,
+
+    createdAt: nowIsoDateTime(),
+    updatedAt: nowIsoDateTime(),
+
+    externalId: input.externalId,
+    clientId: input.clientId,
+    clientCode: input.clientCode,
+    projectStatus: input.projectStatus,
+    projectType: input.projectType,
+    primaryProjectManagerName: input.primaryProjectManagerName,
+    primaryProjectManagerId: input.primaryProjectManagerId,
+    projectManagerIds: input.projectManagerIds,
+    canEditInKawari: input.canEditInKawari,
   };
 
-  return addProjectAccount(projectAccount);
+  items.push(newItem);
+  await saveProjectAccounts(items);
+
+  return newItem;
 }
 
 export async function editProjectAccount(
   id: string,
   input: UpdateProjectAccountInput,
 ): Promise<ProjectAccount> {
-  const parsed = updateProjectAccountSchema.safeParse(input);
+  const items = await listProjectAccounts();
+  const index = items.findIndex((item) => item.id === id);
 
-  if (!parsed.success) {
-    throw new ValidationError("Invalid project account update payload.", {
-      details: formatZodErrors(parsed.error),
-    });
+  if (index === -1) {
+    throw new NotFoundError("Project account not found.");
   }
 
-  const existing = await findProjectAccountById(id);
+  const existing = items[index];
 
-  if (!existing) {
-    throw new ValidationError("Project account not found.");
-  }
-
-  const nextAllocatedManDays =
-    parsed.data.allocatedManDays ?? existing.allocatedManDays;
-  const nextUsedManDays = parsed.data.usedManDays ?? existing.usedManDays;
-  const nextStartDate = parsed.data.startDate ?? existing.startDate;
-  const nextEndDate = parsed.data.endDate ?? existing.endDate;
-
-  if (nextEndDate < nextStartDate) {
-    throw new ValidationError("End date must be on or after the start date.");
-  }
-
-  assertManDayBalance(nextAllocatedManDays, nextUsedManDays);
-
-  const remainingManDays = calculateRemainingManDays(
-    nextAllocatedManDays,
-    nextUsedManDays,
-  );
+  const allocatedManDays =
+    input.allocatedManDays ?? existing.allocatedManDays;
+  const usedManDays = input.usedManDays ?? existing.usedManDays;
 
   const updated: ProjectAccount = {
     ...existing,
-    ...parsed.data,
-    allocatedManDays: roundManDays(nextAllocatedManDays),
-    usedManDays: roundManDays(nextUsedManDays),
-    remainingManDays,
-    status:
-      parsed.data.status ?? deriveStatus(nextEndDate, remainingManDays),
-    alertSettings: parsed.data.alertSettings
-      ? normalizeAlertSettings(parsed.data.alertSettings)
+    ...input,
+
+    allocatedManDays,
+    usedManDays,
+    remainingManDays:
+      input.remainingManDays ??
+      calculateRemaining(allocatedManDays, usedManDays),
+
+    alertSettings: input.alertSettings
+      ? {
+          ...existing.alertSettings,
+          ...input.alertSettings,
+        }
       : existing.alertSettings,
+
     updatedAt: nowIsoDateTime(),
   };
 
-  return updateProjectAccount(updated);
+  items[index] = updated;
+  await saveProjectAccounts(items);
+
+  return updated;
+}
+
+export async function updateProjectAccount(
+  id: string,
+  input: UpdateProjectAccountInput,
+): Promise<ProjectAccount> {
+  return editProjectAccount(id, input);
 }
 
 export async function archiveProjectAccount(
@@ -255,13 +220,9 @@ export async function archiveProjectAccount(
     return existing;
   }
 
-  const updated: ProjectAccount = {
-    ...existing,
+  return updateProjectAccount(id, {
     archivedAt: nowIsoDateTime(),
-    updatedAt: nowIsoDateTime(),
-  };
-
-  return updateProjectAccount(updated);
+  });
 }
 
 export async function restoreProjectAccount(
@@ -277,11 +238,7 @@ export async function restoreProjectAccount(
     return existing;
   }
 
-  const updated: ProjectAccount = {
-    ...existing,
+  return updateProjectAccount(id, {
     archivedAt: undefined,
-    updatedAt: nowIsoDateTime(),
-  };
-
-  return updateProjectAccount(updated);
+  });
 }

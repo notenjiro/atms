@@ -1,4 +1,4 @@
-export type TimesheetProjectSource = "local" | "customer-api";
+export type TimesheetProjectSource = "local" | "customer-api" | "kawari-monthly" | "kawari-history";
 
 export type TimesheetProjectCategory =
   | "all"
@@ -8,24 +8,19 @@ export type TimesheetProjectCategory =
 export type TimesheetProject = {
   id: string;
 
-  // primary identity
+  projectId?: string;
+
   code: string;
   name: string;
-
-  // classification
   category?: string;
   isChargeable: boolean;
-
-  // optional business context
   customerName?: string;
 
-  // source tracking
-  source: TimesheetProjectSource;
+  approverIds?: string[];
+  approverNames?: string[];
 
-  // lifecycle
+  source: string;
   isActive: boolean;
-
-  // metadata
   createdAt: string;
   updatedAt: string;
 };
@@ -64,10 +59,6 @@ export type UpdateTimesheetProjectInput = Partial<{
   isActive: boolean;
 }>;
 
-/**
- * For future API integration (customer system)
- * we define a raw external shape placeholder
- */
 export type ExternalTimesheetProject = {
   projectCode: string;
   projectName: string;

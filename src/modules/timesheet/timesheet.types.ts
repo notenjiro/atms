@@ -43,6 +43,18 @@ export type TimesheetEntry = {
   updatedAt: string;
 };
 
+export type TimesheetMonthProjectConfigInput = {
+  projectRefId: string;
+  projectCode: string;
+  projectName: string;
+  selectedApproverId?: string;
+  selectedApproverName?: string;
+  approverOptions: {
+    id: string;
+    name: string;
+  }[];
+};
+
 export type CreateTimesheetEntryInput = {
   workDate: string;
   hours: number;
@@ -139,4 +151,5 @@ export type SaveTimesheetMonthBoardInput = {
   employeeName: string;
   month: string;
   entries: SaveTimesheetMonthBoardEntryInput[];
+  projectConfigs?: TimesheetMonthProjectConfigInput[];
 };

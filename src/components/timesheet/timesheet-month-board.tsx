@@ -24,6 +24,9 @@ type BoardProject = {
   projectName: string;
   isChargeable: boolean;
   customerName?: string;
+  approverIds?: string[];
+  approverNames?: string[];
+  selectedApproverId?: string;
 };
 
 type BoardRow = {
@@ -140,6 +143,8 @@ type PickerProject = {
   name: string;
   isChargeable: boolean;
   customerName?: string;
+  approverIds?: string[];
+  approverNames?: string[];
 };
 
 type SaveMonthBoardEntryPayload = {
@@ -701,12 +706,20 @@ export function TimesheetMonthBoard({
 
     const sectionId = getProjectSectionKey(project.code);
 
+    const fallbackApproverId =
+      project.approverIds?.[0] ??
+      project.approverNames?.[0] ??
+      "";
+
     const newProject: BoardProject = {
       id: sectionId,
       projectCode: project.code,
       projectName: project.name,
       isChargeable: project.isChargeable,
       customerName: project.customerName,
+      approverIds: project.approverIds ?? [],
+      approverNames: project.approverNames ?? [],
+      selectedApproverId: fallbackApproverId,
     };
 
     const newRow: BoardRow = {
@@ -768,6 +781,25 @@ export function TimesheetMonthBoard({
     setRows((current) =>
       current.filter((row) => row.projectRefId !== projectRefId),
     );
+    markBoardDirty();
+  }
+
+  function updateProjectApprover(projectRefId: string, approverId: string) {
+    if (isBoardLocked || isSubmittedMonth) {
+      return;
+    }
+
+    setProjects((current) =>
+      current.map((project) =>
+        project.id === projectRefId
+          ? {
+              ...project,
+              selectedApproverId: approverId,
+            }
+          : project,
+      ),
+    );
+
     markBoardDirty();
   }
 
@@ -1254,7 +1286,7 @@ export function TimesheetMonthBoard({
           <table className="min-w-full border-separate border-spacing-0 text-sm">
             <thead>
               <tr>
-                <th className="sticky left-0 z-20 min-w-[320px] border-b border-slate-200 bg-white px-4 py-3 text-left font-semibold text-slate-700">
+                <th className="sticky left-0 z-20 min-w-[430px] border-b border-slate-200 bg-white px-4 py-3 text-left font-semibold text-slate-700">
                   Project / Sub-task
                 </th>
 
@@ -1330,45 +1362,92 @@ export function TimesheetMonthBoard({
                   <tr key={`project-${project.id}`}>
                     <td colSpan={days.length + 2} className="p-0">
                       <div className="border-b border-slate-200 bg-slate-50">
-                        <div className="grid min-w-full grid-cols-[320px_repeat(auto-fit,minmax(56px,1fr))_72px]">
-                          <div className="sticky left-0 z-10 flex min-h-[72px] items-center justify-between gap-3 border-r border-slate-200 bg-slate-50 px-4 py-4">
-                            <div>
-                              <p className="text-sm font-semibold text-slate-900">
-                                {project.projectCode}
-                              </p>
-                              <p className="mt-1 text-sm text-slate-700">
-                                {project.projectName}
-                              </p>
-                              <p className="mt-1 text-xs text-slate-500">
-                                {project.customerName || "No customer"} •{" "}
-                                {project.isChargeable
-                                  ? "Chargeable"
-                                  : "Non-charge"}
-                              </p>
-                            </div>
+                        <div className="grid min-w-full grid-cols-[430px_repeat(auto-fit,minmax(56px,1fr))_72px]">
+                          <div className="sticky left-0 z-10 min-h-[72px] border-r border-slate-200 bg-slate-50 px-4 py-4">
+                            <div className="min-w-0">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="text-sm font-semibold text-slate-900">
+                                      {project.projectCode}
+                                    </p>
 
-                            <div className="flex flex-wrap gap-2">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() =>
-                                  addTaskRow(project.id, project.projectCode)
-                                }
-                                disabled={isBoardLocked || isSubmittedMonth}
-                              >
-                                <Plus className="size-4" />
-                                Add Row
-                              </Button>
+                                    <div className="flex shrink-0 items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          addTaskRow(project.id, project.projectCode)
+                                        }
+                                        disabled={isBoardLocked || isSubmittedMonth}
+                                        className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-300"
+                                        aria-label="Add task row"
+                                      >
+                                        <Plus className="size-3.5" />
+                                      </button>
 
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => removeProject(project.id)}
-                                disabled={isBoardLocked || isSubmittedMonth}
-                              >
-                                <Trash2 className="size-4" />
-                                Remove
-                              </Button>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeProject(project.id)}
+                                        disabled={isBoardLocked || isSubmittedMonth}
+                                        className="rounded-lg border border-slate-200 bg-white p-1.5 text-rose-500 transition hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-300"
+                                        aria-label="Remove project"
+                                      >
+                                        <Trash2 className="size-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  <p className="mt-1 break-words text-sm leading-snug text-slate-700">
+                                    {project.projectName}
+                                  </p>
+
+                                  <p className="mt-1 text-xs text-slate-500">
+                                    {project.customerName || "No customer"} •{" "}
+                                    {project.isChargeable
+                                      ? "Chargeable"
+                                      : "Non-charge"}
+                                  </p>
+
+                                  <div className="mt-3 max-w-[320px]">
+                                    <label className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                                      Approver
+                                    </label>
+                                    <select
+                                      value={project.selectedApproverId ?? ""}
+                                      onChange={(event) =>
+                                        updateProjectApprover(
+                                          project.id,
+                                          event.target.value,
+                                        )
+                                      }
+                                      disabled={isBoardLocked || isSubmittedMonth}
+                                      className="mt-1 block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+                                    >
+                                      {project.approverIds &&
+                                      project.approverIds.length > 0 ? (
+                                        project.approverIds.map((approverId, index) => (
+                                          <option key={approverId} value={approverId}>
+                                            {project.approverNames?.[index] ||
+                                              approverId}
+                                          </option>
+                                        ))
+                                      ) : project.approverNames &&
+                                        project.approverNames.length > 0 ? (
+                                        project.approverNames.map((approverName) => (
+                                          <option
+                                            key={approverName}
+                                            value={approverName}
+                                          >
+                                            {approverName}
+                                          </option>
+                                        ))
+                                      ) : (
+                                        <option value="">No approver available</option>
+                                      )}
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
 
@@ -1402,7 +1481,7 @@ export function TimesheetMonthBoard({
                       {project.rows.map((row) => (
                         <div
                           key={row.id}
-                          className="grid min-w-full grid-cols-[320px_repeat(auto-fit,minmax(56px,1fr))_72px] border-b border-slate-100 hover:bg-slate-50/60"
+                          className="grid min-w-full grid-cols-[430px_repeat(auto-fit,minmax(56px,1fr))_72px] border-b border-slate-100 hover:bg-slate-50/60"
                         >
                           <div className="sticky left-0 z-10 flex items-start gap-3 border-r border-slate-100 bg-white px-4 py-3">
                             <input
@@ -1522,6 +1601,7 @@ export function TimesheetMonthBoard({
 
       <TimesheetProjectPickerDialog
         open={pickerOpen}
+        monthKey={visibleMonthKey}
         onClose={() => setPickerOpen(false)}
         onSelect={addProject}
       />

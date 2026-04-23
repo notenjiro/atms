@@ -53,7 +53,8 @@ function buildTimesheetProjectFilters(
 
 export const GET = withApiHandler(async (req: NextRequest) => {
   const filters = buildTimesheetProjectFilters(req.nextUrl.searchParams);
-  const data = await getTimesheetProjectPickerBootstrapService(filters);
+  const month = getStringParam(req.nextUrl.searchParams, "month");
+  const data = await getTimesheetProjectPickerBootstrapService(filters, month);
 
   return ok({
     ...data,

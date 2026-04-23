@@ -5,6 +5,7 @@ export const projectAccountStatusSchema = z.enum([
   "expired",
   "draft",
   "inactive",
+  "done",
 ]);
 
 export const projectAccountAlertChannelSchema = z.enum(["email", "sms"]);
@@ -24,9 +25,7 @@ export const projectAccountAlertSettingsSchema = z.object({
     .number()
     .int("Days before expiry must be a whole number.")
     .min(0, "Days before expiry cannot be negative."),
-  channels: z
-    .array(projectAccountAlertChannelSchema)
-    .min(1, "At least one alert channel is required."),
+  channels: z.array(projectAccountAlertChannelSchema),
   recipients: z.array(projectAccountAlertRecipientSchema),
 });
 
@@ -46,9 +45,20 @@ export const projectAccountSchema = z.object({
   status: projectAccountStatusSchema,
   note: z.string().trim().optional(),
   alertSettings: projectAccountAlertSettingsSchema,
-  archivedAt: z.string().min(1).optional(),
+  archivedAt: z.string().min(1).nullish(),
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
+
+  // Kawari fields
+  externalId: z.string().trim().optional(),
+  clientId: z.string().trim().optional(),
+  clientCode: z.string().trim().optional(),
+  projectStatus: z.string().trim().optional(),
+  projectType: z.string().trim().optional(),
+  primaryProjectManagerName: z.string().trim().optional(),
+  primaryProjectManagerId: z.string().trim().optional(),
+  projectManagerIds: z.array(z.string().trim()).optional(),
+  canEditInKawari: z.boolean().optional(),
 });
 
 export const createProjectAccountSchema = z
@@ -67,6 +77,18 @@ export const createProjectAccountSchema = z
       .optional(),
     note: z.string().trim().optional(),
     alertSettings: projectAccountAlertSettingsSchema.partial().optional(),
+
+    // Kawari fields
+    externalId: z.string().trim().optional(),
+    clientId: z.string().trim().optional(),
+    clientCode: z.string().trim().optional(),
+    projectStatus: z.string().trim().optional(),
+    projectType: z.string().trim().optional(),
+    primaryProjectManagerName: z.string().trim().optional(),
+    primaryProjectManagerId: z.string().trim().optional(),
+    projectManagerIds: z.array(z.string().trim()).optional(),
+    canEditInKawari: z.boolean().optional(),
+    status: projectAccountStatusSchema.optional(),
   })
   .superRefine((value, ctx) => {
     if (value.endDate < value.startDate) {
@@ -104,9 +126,22 @@ export const updateProjectAccountSchema = z
       .number()
       .min(0, "Used man-days cannot be negative.")
       .optional(),
+    remainingManDays: z.number().optional(),
     status: projectAccountStatusSchema.optional(),
     note: z.string().trim().optional(),
     alertSettings: projectAccountAlertSettingsSchema.optional(),
+    archivedAt: z.string().min(1).nullish().optional(),
+
+    // Kawari fields
+    externalId: z.string().trim().optional(),
+    clientId: z.string().trim().optional(),
+    clientCode: z.string().trim().optional(),
+    projectStatus: z.string().trim().optional(),
+    projectType: z.string().trim().optional(),
+    primaryProjectManagerName: z.string().trim().optional(),
+    primaryProjectManagerId: z.string().trim().optional(),
+    projectManagerIds: z.array(z.string().trim()).optional(),
+    canEditInKawari: z.boolean().optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: "At least one field is required for update.",

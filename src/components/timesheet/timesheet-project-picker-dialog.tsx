@@ -12,28 +12,27 @@ type TimesheetProjectPickerItem = {
   name: string;
   isChargeable: boolean;
   customerName?: string;
+  approverNames?: string[];
 };
 
 type TimesheetProjectPickerDialogProps = {
   open: boolean;
+  monthKey: string;
   onClose: () => void;
   onSelect: (project: TimesheetProjectPickerItem) => void;
 };
 
-type SearchResponseItem = {
-  id: string;
-  projectName?: string;
-  customerName?: string;
-  contractNo?: string;
-};
-
-type SearchResponse = {
+type BootstrapResponse = {
   success?: boolean;
-  data?: SearchResponseItem[] | null;
+  data?: {
+    items?: TimesheetProjectPickerItem[];
+    total?: number;
+  };
 };
 
 export function TimesheetProjectPickerDialog({
   open,
+  monthKey,
   onClose,
   onSelect,
 }: TimesheetProjectPickerDialogProps) {
@@ -44,63 +43,37 @@ export function TimesheetProjectPickerDialog({
 
   useEffect(() => {
     if (!open) {
-      setItems([]);
-      setSearch("");
-      setTab("all");
-      return;
-    }
-
-    if (!search.trim()) {
-      setItems([]);
-      setIsLoading(false);
       return;
     }
 
     let cancelled = false;
 
-    async function searchProjects() {
+    async function loadProjects() {
       try {
         setIsLoading(true);
 
         const response = await fetch(
-          `/project-accounts/search?q=${encodeURIComponent(search.trim())}`,
+          `/api/timesheet-projects/bootstrap?month=${encodeURIComponent(monthKey)}`,
           {
             cache: "no-store",
           },
         );
 
-        const result = (await response.json().catch(() => ({}))) as SearchResponse;
+        const result = (await response.json().catch(() => ({}))) as BootstrapResponse;
 
-        if (!response.ok) {
-          throw new Error("Unable to search project accounts.");
+        if (!response.ok || !result.success) {
+          throw new Error("Unable to load timesheet projects.");
         }
 
-        const rawItems = Array.isArray(result.data) ? result.data : [];
-
-        const normalizedItems: TimesheetProjectPickerItem[] = rawItems.map(
-          (item) => ({
-            id: String(item.id ?? ""),
-            code: String(item.contractNo ?? item.id ?? ""),
-            name: String(item.projectName ?? ""),
-            customerName: item.customerName ? String(item.customerName) : "",
-            isChargeable: true,
-          }),
-        );
-
         if (!cancelled) {
-          setItems(normalizedItems);
+          setItems(Array.isArray(result.data?.items) ? result.data!.items! : []);
         }
       } catch (error) {
         console.error(error);
-
-        if (!cancelled) {
-          setItems([]);
-        }
-
         toast.error(
           error instanceof Error
             ? error.message
-            : "Unable to search project accounts.",
+            : "Unable to load timesheet projects.",
         );
       } finally {
         if (!cancelled) {
@@ -109,15 +82,12 @@ export function TimesheetProjectPickerDialog({
       }
     }
 
-    const timeout = setTimeout(() => {
-      searchProjects();
-    }, 300);
+    loadProjects();
 
     return () => {
       cancelled = true;
-      clearTimeout(timeout);
     };
-  }, [open, search]);
+  }, [open, monthKey]);
 
   const filteredItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -127,7 +97,10 @@ export function TimesheetProjectPickerDialog({
         keyword === "" ||
         item.code.toLowerCase().includes(keyword) ||
         item.name.toLowerCase().includes(keyword) ||
-        (item.customerName ?? "").toLowerCase().includes(keyword);
+        (item.customerName ?? "").toLowerCase().includes(keyword) ||
+        (item.approverNames ?? []).some((name) =>
+          name.toLowerCase().includes(keyword),
+        );
 
       const matchesTab =
         tab === "all" ||
@@ -173,7 +146,7 @@ export function TimesheetProjectPickerDialog({
               <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search project name, customer, or contract number"
+                placeholder="Search project code, name, customer, or approver"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 className="block w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
@@ -202,17 +175,11 @@ export function TimesheetProjectPickerDialog({
           <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
             {isLoading ? (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
-                Searching projects...
+                Loading projects...
               </div>
             ) : null}
 
-            {!isLoading && search.trim() === "" ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
-                Start typing to search projects.
-              </div>
-            ) : null}
-
-            {!isLoading && search.trim() !== "" && filteredItems.length === 0 ? (
+            {!isLoading && filteredItems.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">
                 No projects match the current search.
               </div>
@@ -237,6 +204,15 @@ export function TimesheetProjectPickerDialog({
                       <p className="mt-1 text-sm text-slate-700">{item.name}</p>
                       <p className="mt-2 text-xs text-slate-500">
                         {item.customerName || "No customer"}
+                      </p>
+                      <p className="mt-2 text-xs text-slate-500">
+                        {item.approverNames && item.approverNames.length > 0
+                          ? `Approver: ${item.approverNames.slice(0, 3).join(", ")}${
+                              item.approverNames.length > 3
+                                ? ` +${item.approverNames.length - 3} more`
+                                : ""
+                            }`
+                          : "Approver: Not available"}
                       </p>
                     </div>
 

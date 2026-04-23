@@ -7,6 +7,8 @@ import { NotFoundError, ValidationError } from "@/lib/errors";
 import {
   approveTimesheetMonthService,
   rejectTimesheetMonthService,
+  saveTimesheetMonthDraftService,
+  submitTimesheetMonthService,
 } from "@/modules/timesheet-month/timesheet-month.service";
 
 import {
@@ -23,6 +25,7 @@ import {
 import type {
   CreateTimesheetEntryInput,
   SaveTimesheetMonthBoardInput,
+  TimesheetMonthProjectConfigInput,
   TimesheetApprovalSummary,
   TimesheetBootstrap,
   TimesheetDailySummary,
@@ -750,6 +753,32 @@ export async function rejectTimesheetEntryService(
   });
 }
 
+function normalizeMonthProjectConfigs(
+  projectConfigs?: TimesheetMonthProjectConfigInput[],
+) {
+  if (!Array.isArray(projectConfigs)) {
+    return undefined;
+  }
+
+  return projectConfigs
+    .map((item) => ({
+      projectRefId: item.projectRefId.trim(),
+      projectCode: item.projectCode.trim(),
+      projectName: item.projectName.trim(),
+      selectedApproverId: item.selectedApproverId?.trim() || undefined,
+      selectedApproverName: item.selectedApproverName?.trim() || undefined,
+      approverOptions: Array.isArray(item.approverOptions)
+        ? item.approverOptions
+            .map((option) => ({
+              id: option.id.trim(),
+              name: option.name.trim(),
+            }))
+            .filter((option) => option.id && option.name)
+        : [],
+    }))
+    .filter((item) => item.projectRefId && item.projectCode && item.projectName);
+}
+
 export async function saveTimesheetMonthBoardService(
   input: SaveTimesheetMonthBoardInput,
 ): Promise<TimesheetEntry[]> {
@@ -766,7 +795,15 @@ export async function saveTimesheetMonthBoardService(
     throw new ValidationError("entries must contain at least one item.");
   }
 
-  return replaceTimesheetMonthEntriesService(actor, input.month, input.entries);
+  const items = await replaceTimesheetMonthEntriesService(actor, input.month, input.entries);
+
+  await saveTimesheetMonthDraftService(
+    actor.employeeId,
+    input.month,
+    normalizeMonthProjectConfigs(input.projectConfigs),
+  );
+
+  return items;
 }
 
 export async function submitTimesheetMonthBoardService(
@@ -788,6 +825,12 @@ export async function submitTimesheetMonthBoardService(
 
     updatedItems.push(updatedItem);
   }
+
+  await submitTimesheetMonthService(
+    input.employeeId.trim(),
+    input.month,
+    normalizeMonthProjectConfigs(input.projectConfigs),
+  );
 
   return sortTimesheetEntriesDescending(updatedItems);
 }

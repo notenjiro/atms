@@ -1,27 +1,20 @@
 import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
-import { CreateProjectAccountForm } from "@/components/project-accounts/create-project-account-form";
-import { ProjectAccountsTable } from "@/components/project-accounts/project-accounts-table";
+import { ProjectAccountsTabs } from "@/components/project-accounts/project-accounts-tabs";
+
 import { getSession } from "@/modules/auth/auth.session";
-import {
-  getArchivedProjectAccounts,
-  getProjectAccounts,
-} from "@/modules/project-accounts/project-account.service";
+import { getProjectAccountsView } from "@/modules/project-accounts/project-account.service";
+
 import type { ProjectAccount } from "@/modules/project-accounts/project-account.types";
 
 function calculateSummary(items: ProjectAccount[]) {
   const today = new Date();
 
-  let active = 0;
   let expiringSoon = 0;
   let totalRemaining = 0;
 
   for (const item of items) {
-    if (item.status === "active") {
-      active++;
-    }
-
     const endDate = new Date(item.endDate);
     const diffDays = Math.ceil(
       (endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
@@ -36,7 +29,6 @@ function calculateSummary(items: ProjectAccount[]) {
 
   return {
     total: items.length,
-    active,
     expiringSoon,
     totalRemaining,
   };
@@ -84,10 +76,9 @@ export default async function ProjectAccountsPage() {
     redirect("/login");
   }
 
-  const activeItems = await getProjectAccounts();
-  const archivedItems = await getArchivedProjectAccounts();
+  const { activeItems, archivedItems } = await getProjectAccountsView();
+
   const summary = calculateSummary(activeItems);
-  const items = [...activeItems, ...archivedItems];
 
   return (
     <div className="glass-panel-project">
@@ -99,23 +90,33 @@ export default async function ProjectAccountsPage() {
         description="Manage contracts, track man-day usage, and monitor support coverage."
       >
         <div className="space-y-5">
-          <CreateProjectAccountForm />
-
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <SummaryCard title="Total Accounts" value={summary.total} />
-            <SummaryCard title="Active Contracts" value={summary.active} />
+            <SummaryCard
+              title="Total Accounts"
+              value={activeItems.length + archivedItems.length}
+            />
+
+            <SummaryCard
+              title="Active Contracts"
+              value={activeItems.length}
+            />
+
             <SummaryCard
               title="Expiring Soon"
               value={summary.expiringSoon}
               hint="≤ 30 days"
             />
+
             <SummaryCard
               title="Remaining Man-days"
               value={formatEffort(summary.totalRemaining)}
             />
           </section>
 
-          <ProjectAccountsTable items={items} />
+          <ProjectAccountsTabs
+            activeItems={activeItems}
+            archivedItems={archivedItems}
+          />
         </div>
       </AppShell>
     </div>

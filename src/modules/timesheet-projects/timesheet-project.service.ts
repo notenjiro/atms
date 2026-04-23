@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 
 import { NotFoundError, ValidationError } from "@/lib/errors";
+import { listProjectAccounts } from "@/modules/project-accounts/project-account.repository";
+import { kawariRequest } from "@/modules/kawari/kawari.client";
 
 import {
   addTimesheetProject,
@@ -23,6 +25,44 @@ import type {
   TimesheetProjectListResult,
   UpdateTimesheetProjectInput,
 } from "./timesheet-project.types";
+
+type ProjectAccountLike = {
+  id: string;
+  projectName: string;
+  customerName: string;
+  contractNo: string;
+} & Record<string, unknown>;
+
+type KawariApproverRaw = {
+  _id?: string;
+  first_name?: string;
+  last_name?: string;
+  nick_name?: string;
+  email?: string;
+};
+
+type KawariMonthlyProjectRaw = {
+  _id?: string;
+  project_code?: string;
+  name?: string;
+  project_type?: string;
+  project_status?: string;
+  project_approver_ids?: string[];
+  approvers?: KawariApproverRaw[];
+};
+
+type KawariMonthlyTimesheetResponse =
+  | KawariMonthlyProjectRaw[]
+  | {
+      projects?: KawariMonthlyProjectRaw[];
+      items?: KawariMonthlyProjectRaw[];
+      data?:
+        | KawariMonthlyProjectRaw[]
+        | {
+            projects?: KawariMonthlyProjectRaw[];
+            items?: KawariMonthlyProjectRaw[];
+          };
+    };
 
 function getNowIsoString(): string {
   return new Date().toISOString();
@@ -56,7 +96,10 @@ function matchesTimesheetProjectFilters(
     return true;
   }
 
-  if (typeof filters.isActive === "boolean" && item.isActive !== filters.isActive) {
+  if (
+    typeof filters.isActive === "boolean" &&
+    item.isActive !== filters.isActive
+  ) {
     return false;
   }
 
@@ -85,6 +128,7 @@ function matchesTimesheetProjectFilters(
       item.name,
       item.category,
       item.customerName,
+      ...(item.approverNames ?? []),
     ]
       .filter(Boolean)
       .join(" ")
@@ -142,55 +186,206 @@ function getDemoTimesheetProjects(): TimesheetProject[] {
       createdAt: now,
       updatedAt: now,
     },
-    {
-      id: randomUUID(),
-      code: "C-2001-26-04-11",
-      name: "Customer Support Retainer",
-      category: "Support",
-      isChargeable: true,
-      customerName: "CMC Client A",
-      source: "local",
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: randomUUID(),
-      code: "C-2002-26-04-12",
-      name: "Application Enhancement",
-      category: "Project",
-      isChargeable: true,
-      customerName: "CMC Client B",
-      source: "local",
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: randomUUID(),
-      code: "NC-3001-26-04-01",
-      name: "Internal Improvement",
-      category: "Internal",
-      isChargeable: false,
-      customerName: "Internal",
-      source: "local",
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
-    {
-      id: randomUUID(),
-      code: "C-2003-26-04-15",
-      name: "Monthly Report Delivery",
-      category: "Reporting",
-      isChargeable: true,
-      customerName: "CMC Client C",
-      source: "local",
-      isActive: true,
-      createdAt: now,
-      updatedAt: now,
-    },
   ];
+}
+
+function isMongoObjectIdLike(value: string | undefined | null): boolean {
+  if (!value) {
+    return false;
+  }
+
+  return /^[a-f0-9]{24}$/i.test(value.trim());
+}
+
+function normalizeString(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeApproverName(item: KawariApproverRaw): string {
+  const firstName = normalizeString(item.first_name);
+  const lastName = normalizeString(item.last_name);
+  const nickName = normalizeString(item.nick_name);
+  const fullName = [firstName, lastName].filter(Boolean).join(" ").trim();
+
+  return fullName || nickName || normalizeString(item.email);
+}
+
+function resolveProjectAccountMatch(
+  accounts: ProjectAccountLike[],
+  project: KawariMonthlyProjectRaw,
+): ProjectAccountLike | null {
+  const projectCode = normalizeString(project.project_code);
+  const projectName = normalizeString(project.name);
+
+  const byCode = accounts.find(
+    (account: ProjectAccountLike) =>
+      normalizeString(account.contractNo) === projectCode,
+  );
+
+  if (byCode) {
+    return byCode;
+  }
+
+  const byName = accounts.find(
+    (account: ProjectAccountLike) =>
+      normalizeString(account.projectName) === projectName,
+  );
+
+  return byName ?? null;
+}
+
+function extractApproverIds(project: KawariMonthlyProjectRaw): string[] {
+  const directIds = Array.isArray(project.project_approver_ids)
+    ? project.project_approver_ids
+        .map((item: string) => normalizeString(item))
+        .filter(Boolean)
+    : [];
+
+  if (directIds.length > 0) {
+    return Array.from(new Set(directIds));
+  }
+
+  const fallbackIds = Array.isArray(project.approvers)
+    ? project.approvers
+        .map((item: KawariApproverRaw) => normalizeString(item._id))
+        .filter(Boolean)
+    : [];
+
+  return Array.from(new Set(fallbackIds));
+}
+
+function extractApproverNames(project: KawariMonthlyProjectRaw): string[] {
+  const names = Array.isArray(project.approvers)
+    ? project.approvers
+        .map((item: KawariApproverRaw) => normalizeApproverName(item))
+        .filter(Boolean)
+    : [];
+
+  return Array.from(new Set(names));
+}
+
+function mapKawariMonthlyProjectToTimesheetProject(
+  project: KawariMonthlyProjectRaw,
+  accounts: ProjectAccountLike[],
+): TimesheetProject | null {
+  const projectId = normalizeString(project._id);
+  const projectCode = normalizeString(project.project_code);
+  const projectName = normalizeString(project.name);
+
+  if (!projectId || !projectName) {
+    return null;
+  }
+
+  if (!projectCode || isMongoObjectIdLike(projectCode)) {
+    return null;
+  }
+
+  const matchedAccount = resolveProjectAccountMatch(accounts, project);
+  const approverIds = extractApproverIds(project);
+  const approverNames = extractApproverNames(project);
+
+  const now = getNowIsoString();
+  const projectType = normalizeString(project.project_type);
+  const projectStatus = normalizeString(project.project_status).toUpperCase();
+
+  return {
+    id: projectId,
+    projectId,
+    code: projectCode,
+    name: projectName,
+    category: projectType || undefined,
+    isChargeable: projectType !== "COMMON",
+    customerName: matchedAccount?.customerName || undefined,
+    approverIds,
+    approverNames,
+    source: "kawari-monthly",
+    isActive: projectStatus !== "INACTIVE",
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function extractMonthlyProjectsPayload(
+  payload: KawariMonthlyTimesheetResponse,
+): KawariMonthlyProjectRaw[] {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (Array.isArray(payload.projects)) {
+    return payload.projects;
+  }
+
+  if (Array.isArray(payload.items)) {
+    return payload.items;
+  }
+
+  if (Array.isArray(payload.data)) {
+    return payload.data;
+  }
+
+  if (payload.data && typeof payload.data === "object") {
+    const nested = payload.data as {
+      projects?: KawariMonthlyProjectRaw[];
+      items?: KawariMonthlyProjectRaw[];
+    };
+
+    if (Array.isArray(nested.projects)) {
+      return nested.projects;
+    }
+
+    if (Array.isArray(nested.items)) {
+      return nested.items;
+    }
+  }
+
+  return [];
+}
+
+async function getKawariMonthlyTimesheetProjects(
+  monthKey: string,
+): Promise<TimesheetProject[]> {
+  const accounts = (await listProjectAccounts()) as ProjectAccountLike[];
+
+  const response = await kawariRequest<KawariMonthlyTimesheetResponse>({
+    path: `/timesheets/my/${monthKey}`,
+    method: "GET",
+  });
+
+  const rawProjects = extractMonthlyProjectsPayload(response.data);
+
+  const mapped = rawProjects
+    .map((project: KawariMonthlyProjectRaw) =>
+      mapKawariMonthlyProjectToTimesheetProject(project, accounts),
+    )
+    .filter((item: TimesheetProject | null): item is TimesheetProject => item !== null);
+
+  const deduplicated = new Map<string, TimesheetProject>();
+
+  for (const item of mapped) {
+    const key = item.code.trim().toLowerCase();
+    const existing = deduplicated.get(key);
+
+    if (!existing) {
+      deduplicated.set(key, item);
+      continue;
+    }
+
+    deduplicated.set(key, {
+      ...existing,
+      approverIds: Array.from(
+        new Set([...(existing.approverIds ?? []), ...(item.approverIds ?? [])]),
+      ),
+      approverNames: Array.from(
+        new Set([
+          ...(existing.approverNames ?? []),
+          ...(item.approverNames ?? []),
+        ]),
+      ),
+    });
+  }
+
+  return sortProjects([...deduplicated.values()]);
 }
 
 export async function listTimesheetProjectsService(
@@ -198,7 +393,11 @@ export async function listTimesheetProjectsService(
 ): Promise<TimesheetProject[]> {
   const items = await listTimesheetProjects();
 
-  return sortProjects(items.filter((item) => matchesTimesheetProjectFilters(item, filters)));
+  return sortProjects(
+    items.filter((item: TimesheetProject) =>
+      matchesTimesheetProjectFilters(item, filters),
+    ),
+  );
 }
 
 export async function listTimesheetProjectsResultService(
@@ -278,7 +477,6 @@ export async function updateTimesheetProjectService(
   }
 
   const existing = await getTimesheetProjectByIdService(id);
-
   const nextCode = parsedInput.data.code?.trim() ?? existing.code;
 
   if (nextCode !== existing.code) {
@@ -334,15 +532,17 @@ export async function seedDemoTimesheetProjectsService(): Promise<TimesheetProje
 export async function syncExternalTimesheetProjectsService(
   externalProjects: ExternalTimesheetProject[],
 ): Promise<TimesheetProject[]> {
-  const parsedProjects = externalProjects.map((project) => {
-    const parsed = externalTimesheetProjectSchema.safeParse(project);
+  const parsedProjects = externalProjects.map(
+    (project: ExternalTimesheetProject) => {
+      const parsed = externalTimesheetProjectSchema.safeParse(project);
 
-    if (!parsed.success) {
-      throw new ValidationError("Invalid external timesheet project payload.");
-    }
+      if (!parsed.success) {
+        throw new ValidationError("Invalid external timesheet project payload.");
+      }
 
-    return parsed.data;
-  });
+      return parsed.data;
+    },
+  );
 
   const normalizedProjects = parsedProjects.map((project) =>
     mapExternalTimesheetProjectToInternal(project),
@@ -363,12 +563,31 @@ export async function syncExternalTimesheetProjectsService(
 
 export async function getTimesheetProjectPickerBootstrapService(
   filters?: TimesheetProjectFilters,
+  monthKey?: string,
 ): Promise<TimesheetProjectListResult> {
-  const existing = await listTimesheetProjects();
+  const resolvedMonthKey =
+    typeof monthKey === "string" && /^\d{4}-\d{2}$/.test(monthKey)
+      ? monthKey
+      : new Date().toISOString().slice(0, 7);
 
-  if (existing.length === 0) {
-    await seedDemoTimesheetProjectsService();
+  try {
+    const kawariItems = await getKawariMonthlyTimesheetProjects(
+      resolvedMonthKey,
+    );
+    const filtered = kawariItems.filter((item: TimesheetProject) =>
+      matchesTimesheetProjectFilters(item, filters),
+    );
+
+    return buildTimesheetProjectListResult(filtered);
+  } catch (error) {
+    console.error("Falling back to local timesheet project bootstrap:", error);
+
+    const existing = await listTimesheetProjects();
+
+    if (existing.length === 0) {
+      await seedDemoTimesheetProjectsService();
+    }
+
+    return listTimesheetProjectsResultService(filters);
   }
-
-  return listTimesheetProjectsResultService(filters);
 }

@@ -4,10 +4,25 @@ export type TimesheetMonthStatus =
   | "approved"
   | "rejected";
 
+export type TimesheetMonthProjectApproverOption = {
+  id: string;
+  name: string;
+};
+
+export type TimesheetMonthProjectConfig = {
+  projectRefId: string;
+  projectCode: string;
+  projectName: string;
+  selectedApproverId?: string;
+  selectedApproverName?: string;
+  approverOptions: TimesheetMonthProjectApproverOption[];
+};
+
 export type TimesheetMonth = {
   employeeId: string;
   month: string;
   status: TimesheetMonthStatus;
+  projectConfigs?: TimesheetMonthProjectConfig[];
   submittedAt?: string;
   approvedAt?: string;
   rejectedReason?: string;
