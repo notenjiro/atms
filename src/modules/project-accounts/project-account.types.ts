@@ -55,6 +55,12 @@ export type ProjectAccount = {
   primaryProjectManagerId?: string;
   projectManagerIds?: string[];
   canEditInKawari?: boolean;
+
+  // Kawari detail fields
+  overrideTotalResourceMandays?: number;
+  totalManDays?: number;
+  projectServiceContractPrice?: number;
+  projectOtherServiceContractPrice?: number;
 };
 
 export type CreateProjectAccountInput = {
@@ -82,6 +88,14 @@ export type CreateProjectAccountInput = {
   primaryProjectManagerId?: string;
   projectManagerIds?: string[];
   canEditInKawari?: boolean;
+
+  // Kawari detail fields
+  overrideTotalResourceMandays?: number;
+  totalManDays?: number;
+  projectServiceContractPrice?: number;
+  projectOtherServiceContractPrice?: number;
+
+  status?: ProjectAccountStatus;
 };
 
 export type UpdateProjectAccountInput = Partial<{
@@ -112,6 +126,11 @@ export type UpdateProjectAccountInput = Partial<{
   primaryProjectManagerId: string;
   projectManagerIds: string[];
   canEditInKawari: boolean;
+
+  overrideTotalResourceMandays: number;
+  totalManDays: number;
+  projectServiceContractPrice: number;
+  projectOtherServiceContractPrice: number;
 }>;
 
 export type ProjectAccountsFile = {

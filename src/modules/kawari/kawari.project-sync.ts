@@ -43,12 +43,77 @@ type KawariClientsResponse =
           };
     };
 
+type KawariProjectDetailResource = {
+  sumManDays?: number;
+};
+
+type KawariProjectDetail = {
+  _id?: string;
+  override_total_resource_mandays?: number;
+  project_service_contract_price?: number;
+  project_other_service_contract_price?: number;
+  total_man_days?: number;
+  resources?: KawariProjectDetailResource[];
+  [key: string]: unknown;
+};
+
+type KawariProjectDetailResponse =
+  | KawariProjectDetail
+  | {
+      project?: KawariProjectDetail | KawariProjectDetail[];
+      item?: KawariProjectDetail;
+      data?:
+        | KawariProjectDetail
+        | KawariProjectDetail[]
+        | {
+            project?: KawariProjectDetail | KawariProjectDetail[];
+            item?: KawariProjectDetail;
+          };
+    };
+
+type KawariTimesheetItem = {
+  project_id?: string;
+  project_code?: string;
+  man_days?: number | string;
+  md?: number | string;
+  effort?: number | string;
+};
+
+type KawariTimesheetResponse =
+  | KawariTimesheetItem[]
+  | {
+      items?: KawariTimesheetItem[];
+      data?: KawariTimesheetItem[];
+    };
+
 function asTrimmedString(value: unknown): string {
   if (typeof value !== "string") {
     return "";
   }
 
   return value.trim();
+}
+
+function asNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.replace(/,/g, "").trim();
+
+    if (!normalized) {
+      return null;
+    }
+
+    const parsed = Number(normalized);
+
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
 }
 
 function normalizeDate(value: string): string {
@@ -203,9 +268,7 @@ function extractProjectCode(project: KawariProjectRaw): string {
     return altContractNo;
   }
 
-  const altCode = asTrimmedString(
-    (project as Record<string, unknown>).code,
-  );
+  const altCode = asTrimmedString((project as Record<string, unknown>).code);
 
   if (altCode) {
     return altCode;
@@ -306,7 +369,9 @@ function dedupeCandidates(
       projectStatus: existing.projectStatus || item.projectStatus,
       projectType: existing.projectType || item.projectType,
       startDate:
-        existing.startDate !== "2000-01-01" ? existing.startDate : item.startDate,
+        existing.startDate !== "2000-01-01"
+          ? existing.startDate
+          : item.startDate,
       endDate:
         existing.endDate !== "2099-12-31" ? existing.endDate : item.endDate,
       customerName:
@@ -365,13 +430,31 @@ function findExistingProjectAccount(
 function hasProjectChanges(
   existing: ProjectAccount,
   candidate: KawariProjectCandidate,
+  detail: KawariProjectDetail | null,
+  allocatedManDays: number,
+  usedManDays: number,
 ): boolean {
+  const overrideTotalResourceMandays =
+    asNumber(detail?.override_total_resource_mandays) ?? undefined;
+  const totalManDays = asNumber(detail?.total_man_days) ?? undefined;
+  const projectServiceContractPrice =
+    asNumber(detail?.project_service_contract_price) ?? undefined;
+  const projectOtherServiceContractPrice =
+    asNumber(detail?.project_other_service_contract_price) ?? undefined;
+
   return (
     existing.projectName !== candidate.projectName ||
     existing.customerName !== candidate.customerName ||
     existing.contractNo !== (candidate.projectCode || candidate.externalId) ||
     existing.startDate !== candidate.startDate ||
     existing.endDate !== candidate.endDate ||
+    existing.allocatedManDays !== allocatedManDays ||
+    existing.usedManDays !== usedManDays ||
+    existing.overrideTotalResourceMandays !== overrideTotalResourceMandays ||
+    existing.totalManDays !== totalManDays ||
+    existing.projectServiceContractPrice !== projectServiceContractPrice ||
+    existing.projectOtherServiceContractPrice !==
+      projectOtherServiceContractPrice ||
     (existing.externalId ?? "") !== candidate.externalId ||
     (existing.clientId ?? "") !== candidate.clientId ||
     (existing.projectStatus ?? "") !== candidate.projectStatus ||
@@ -384,6 +467,172 @@ function hasProjectChanges(
     JSON.stringify(existing.projectManagerIds ?? []) !==
       JSON.stringify(candidate.projectManagerIds)
   );
+}
+
+function isProjectDetailObject(value: unknown): value is KawariProjectDetail {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function extractDetailObject(
+  payload: KawariProjectDetailResponse,
+): KawariProjectDetail | null {
+  if (Array.isArray(payload)) {
+    return payload[0] ?? null;
+  }
+
+  if ("project" in payload) {
+    const projectValue = payload.project;
+
+    if (Array.isArray(projectValue)) {
+      return projectValue[0] ?? null;
+    }
+
+    if (isProjectDetailObject(projectValue)) {
+      return projectValue;
+    }
+  }
+
+  if ("item" in payload) {
+    const itemValue = payload.item;
+
+    if (isProjectDetailObject(itemValue)) {
+      return itemValue;
+    }
+  }
+
+  if ("data" in payload) {
+    const dataValue = payload.data;
+
+    if (Array.isArray(dataValue)) {
+      return dataValue[0] ?? null;
+    }
+
+    if (isProjectDetailObject(dataValue)) {
+      const nested = dataValue as {
+        project?: KawariProjectDetail | KawariProjectDetail[];
+        item?: KawariProjectDetail;
+      };
+
+      if (Array.isArray(nested.project)) {
+        return nested.project[0] ?? null;
+      }
+
+      if (isProjectDetailObject(nested.project)) {
+        return nested.project;
+      }
+
+      if (isProjectDetailObject(nested.item)) {
+        return nested.item;
+      }
+
+      return dataValue;
+    }
+  }
+
+  return isProjectDetailObject(payload) ? payload : null;
+}
+
+function sumResourceManDays(detail: KawariProjectDetail | null): number {
+  if (!detail || !Array.isArray(detail.resources)) {
+    return 0;
+  }
+
+  return detail.resources.reduce((sum, resource) => {
+    return sum + (asNumber(resource.sumManDays) ?? 0);
+  }, 0);
+}
+
+function shouldEnrichProjectDetail(candidate: KawariProjectCandidate): boolean {
+  const status = candidate.projectStatus.trim().toLowerCase();
+  return status === "active" || status === "implementing";
+}
+
+function resolveAllocatedManDays(
+  detail: KawariProjectDetail | null,
+  existing?: ProjectAccount | null,
+): number {
+  if (!detail) {
+    return existing?.allocatedManDays ?? 0;
+  }
+
+  const overrideValue = asNumber(detail.override_total_resource_mandays);
+  if (overrideValue !== null && overrideValue > 0) {
+    return overrideValue;
+  }
+
+  const totalManDays = asNumber(detail.total_man_days);
+  if (totalManDays !== null && totalManDays > 0) {
+    return totalManDays;
+  }
+
+  const summed = sumResourceManDays(detail);
+  if (summed > 0) {
+    return summed;
+  }
+
+  return existing?.allocatedManDays ?? 0;
+}
+
+async function fetchProjectDetailBestEffort(
+  projectId: string,
+): Promise<KawariProjectDetail | null> {
+  try {
+    const response = await kawariRequest<KawariProjectDetailResponse>({
+      path: `/projects/${projectId}`,
+      method: "GET",
+    });
+
+    return extractDetailObject(response.data);
+  } catch (error) {
+    console.error("Kawari project detail sync skipped.", {
+      projectId,
+      error,
+    });
+    return null;
+  }
+}
+
+async function fetchUsedManDaysMap(
+  monthKey: string,
+): Promise<Map<string, number>> {
+  try {
+    const response = await kawariRequest<KawariTimesheetResponse>({
+      path: `/timesheets/my/${monthKey}`,
+      method: "GET",
+    });
+
+    const raw = Array.isArray(response.data)
+      ? response.data
+      : response.data.items ?? response.data.data ?? [];
+
+    const map = new Map<string, number>();
+
+    for (const item of raw) {
+      const projectId = asTrimmedString(item.project_id);
+      const projectCode = asTrimmedString(item.project_code);
+      const used =
+        asNumber(item.man_days) ??
+        asNumber(item.md) ??
+        asNumber(item.effort) ??
+        0;
+
+      const key = projectId || projectCode;
+
+      if (!key) {
+        continue;
+      }
+
+      map.set(key, (map.get(key) ?? 0) + used);
+    }
+
+    return map;
+  } catch (error) {
+    console.error("Kawari timesheet sync skipped.", {
+      monthKey,
+      error,
+    });
+    return new Map();
+  }
 }
 
 async function fetchKawariProjectsAndClients(
@@ -471,22 +720,10 @@ export async function previewKawariProjectAccountSync(input?: {
         };
       }
 
-      if (!hasProjectChanges(existing, candidate)) {
-        return {
-          action: "skip",
-          reason: "Project account already matches Kawari data.",
-          externalId: candidate.externalId,
-          projectCode: candidate.projectCode,
-          projectName: candidate.projectName,
-          customerName: candidate.customerName,
-          mapped: candidate,
-          existing,
-        };
-      }
-
       return {
         action: "update",
-        reason: "Matching project account found and fields have changed.",
+        reason:
+          "Matching project account found. Detail comparison happens at apply stage.",
         externalId: candidate.externalId,
         projectCode: candidate.projectCode,
         projectName: candidate.projectName,
@@ -497,8 +734,12 @@ export async function previewKawariProjectAccountSync(input?: {
     },
   );
 
-  const createCount = previewItems.filter((item) => item.action === "create").length;
-  const updateCount = previewItems.filter((item) => item.action === "update").length;
+  const createCount = previewItems.filter(
+    (item) => item.action === "create",
+  ).length;
+  const updateCount = previewItems.filter(
+    (item) => item.action === "update",
+  ).length;
   const skipCount = previewItems.filter((item) => item.action === "skip").length;
 
   return {
@@ -529,6 +770,9 @@ export async function applyKawariProjectAccountSync(input?: {
       ? preview.items.slice(0, input.limit)
       : preview.items;
 
+  const monthKey = new Date().toISOString().slice(0, 7);
+  const usedMap = await fetchUsedManDaysMap(monthKey);
+
   let createdCount = 0;
   let updatedCount = 0;
   let skippedCount = 0;
@@ -539,10 +783,21 @@ export async function applyKawariProjectAccountSync(input?: {
       continue;
     }
 
-    if (item.action === "skip") {
-      skippedCount += 1;
-      continue;
-    }
+    const latestItems = await listProjectAccounts();
+    const existing =
+      findExistingProjectAccount(latestItems, item.mapped) ?? item.existing;
+
+    const detail = shouldEnrichProjectDetail(item.mapped)
+      ? await fetchProjectDetailBestEffort(item.mapped.externalId)
+      : null;
+
+    const allocatedManDays = resolveAllocatedManDays(detail, existing);
+
+    const usedManDays =
+      usedMap.get(item.mapped.externalId) ??
+      usedMap.get(item.mapped.projectCode) ??
+      existing?.usedManDays ??
+      0;
 
     const payload = {
       projectName: item.mapped.projectName,
@@ -550,8 +805,8 @@ export async function applyKawariProjectAccountSync(input?: {
       contractNo: item.mapped.projectCode || item.mapped.externalId,
       startDate: item.mapped.startDate,
       endDate: item.mapped.endDate,
-      allocatedManDays: 0,
-      usedManDays: 0,
+      allocatedManDays,
+      usedManDays,
       status:
         item.mapped.projectStatus.toUpperCase() === "INACTIVE"
           ? ("inactive" as const)
@@ -565,21 +820,39 @@ export async function applyKawariProjectAccountSync(input?: {
       primaryProjectManagerId: item.mapped.primaryProjectManagerId,
       projectManagerIds: item.mapped.projectManagerIds,
       canEditInKawari: item.mapped.canEditInKawari,
+      overrideTotalResourceMandays:
+        asNumber(detail?.override_total_resource_mandays) ??
+        existing?.overrideTotalResourceMandays,
+      totalManDays: asNumber(detail?.total_man_days) ?? existing?.totalManDays,
+      projectServiceContractPrice:
+        asNumber(detail?.project_service_contract_price) ??
+        existing?.projectServiceContractPrice,
+      projectOtherServiceContractPrice:
+        asNumber(detail?.project_other_service_contract_price) ??
+        existing?.projectOtherServiceContractPrice,
     };
 
-    if (item.action === "create") {
+    if (!existing) {
       await createProjectAccount(payload);
       createdCount += 1;
       continue;
     }
 
-    if (item.action === "update" && item.existing) {
-      await editProjectAccount(item.existing.id, payload);
-      updatedCount += 1;
+    if (
+      !hasProjectChanges(
+        existing,
+        item.mapped,
+        detail,
+        allocatedManDays,
+        usedManDays,
+      )
+    ) {
+      skippedCount += 1;
       continue;
     }
 
-    skippedCount += 1;
+    await editProjectAccount(existing.id, payload);
+    updatedCount += 1;
   }
 
   return {

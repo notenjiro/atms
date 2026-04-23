@@ -49,7 +49,7 @@ export const projectAccountSchema = z.object({
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
 
-  // Kawari fields
+  // Kawari mapping fields
   externalId: z.string().trim().optional(),
   clientId: z.string().trim().optional(),
   clientCode: z.string().trim().optional(),
@@ -59,6 +59,12 @@ export const projectAccountSchema = z.object({
   primaryProjectManagerId: z.string().trim().optional(),
   projectManagerIds: z.array(z.string().trim()).optional(),
   canEditInKawari: z.boolean().optional(),
+
+  // Kawari detail fields
+  overrideTotalResourceMandays: z.number().optional(),
+  totalManDays: z.number().optional(),
+  projectServiceContractPrice: z.number().optional(),
+  projectOtherServiceContractPrice: z.number().optional(),
 });
 
 export const createProjectAccountSchema = z
@@ -78,7 +84,7 @@ export const createProjectAccountSchema = z
     note: z.string().trim().optional(),
     alertSettings: projectAccountAlertSettingsSchema.partial().optional(),
 
-    // Kawari fields
+    // Kawari mapping fields
     externalId: z.string().trim().optional(),
     clientId: z.string().trim().optional(),
     clientCode: z.string().trim().optional(),
@@ -88,6 +94,13 @@ export const createProjectAccountSchema = z
     primaryProjectManagerId: z.string().trim().optional(),
     projectManagerIds: z.array(z.string().trim()).optional(),
     canEditInKawari: z.boolean().optional(),
+
+    // Kawari detail fields
+    overrideTotalResourceMandays: z.number().optional(),
+    totalManDays: z.number().optional(),
+    projectServiceContractPrice: z.number().optional(),
+    projectOtherServiceContractPrice: z.number().optional(),
+
     status: projectAccountStatusSchema.optional(),
   })
   .superRefine((value, ctx) => {
@@ -132,7 +145,7 @@ export const updateProjectAccountSchema = z
     alertSettings: projectAccountAlertSettingsSchema.optional(),
     archivedAt: z.string().min(1).nullish().optional(),
 
-    // Kawari fields
+    // Kawari mapping fields
     externalId: z.string().trim().optional(),
     clientId: z.string().trim().optional(),
     clientCode: z.string().trim().optional(),
@@ -142,6 +155,12 @@ export const updateProjectAccountSchema = z
     primaryProjectManagerId: z.string().trim().optional(),
     projectManagerIds: z.array(z.string().trim()).optional(),
     canEditInKawari: z.boolean().optional(),
+
+    // Kawari detail fields
+    overrideTotalResourceMandays: z.number().optional(),
+    totalManDays: z.number().optional(),
+    projectServiceContractPrice: z.number().optional(),
+    projectOtherServiceContractPrice: z.number().optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: "At least one field is required for update.",

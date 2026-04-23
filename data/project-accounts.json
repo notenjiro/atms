@@ -379,9 +379,9 @@
       "contractNo": "10-25-844-02",
       "startDate": "2025-01-01",
       "endDate": "2025-12-31",
-      "allocatedManDays": 0,
+      "allocatedManDays": 10,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 10,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -390,7 +390,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:39.978Z",
-      "updatedAt": "2026-04-23T02:29:39.978Z",
+      "updatedAt": "2026-04-23T08:06:55.627Z",
       "externalId": "67452f292317b5153413406f",
       "clientId": "639968c2a8ffd1551aed5c8f",
       "clientCode": "10311",
@@ -409,7 +409,10 @@
         "5ba782f7de6a4f7dc94ae87d",
         "6552df10986f582feef383b2"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 150000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "095c5fca-66f3-475f-bd60-df0a0545b498",
@@ -457,9 +460,9 @@
       "contractNo": "10-24-628-02-1",
       "startDate": "2024-12-01",
       "endDate": "2025-11-30",
-      "allocatedManDays": 0,
+      "allocatedManDays": 12,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 12,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -468,7 +471,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:39.981Z",
-      "updatedAt": "2026-04-23T02:29:39.981Z",
+      "updatedAt": "2026-04-23T08:07:19.589Z",
       "externalId": "676a2e3494be9d39e92abdeb",
       "clientId": "5ce7672b2a218835acf14b2b",
       "clientCode": "10147",
@@ -485,7 +488,11 @@
         "5d08cd453223db10bee36699",
         "6552df10986f582feef383b2"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 12,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 216000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "3e533e85-c527-4a1d-bd8a-c3602ca1db16",
@@ -571,9 +578,9 @@
       "contractNo": "10-25-701-02-1",
       "startDate": "2025-02-15",
       "endDate": "2026-02-15",
-      "allocatedManDays": 0,
+      "allocatedManDays": 30,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 30,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -582,7 +589,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:39.988Z",
-      "updatedAt": "2026-04-23T02:29:39.988Z",
+      "updatedAt": "2026-04-23T08:07:30.685Z",
       "externalId": "6797582b4de7040a18fe4405",
       "clientId": "5bf304911dc9c338cd2a6815",
       "clientCode": "10039",
@@ -602,7 +609,11 @@
         "5ba782f7de6a4f7dc94ae893",
         "5ba782f7de6a4f7dc94ae87d"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 30,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 540000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "a1549448-96f7-4669-a6c3-d218c67f4cf6",
@@ -691,9 +702,9 @@
       "contractNo": "10-25-652-02",
       "startDate": "2025-03-01",
       "endDate": "2026-02-28",
-      "allocatedManDays": 0,
+      "allocatedManDays": 10,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 10,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -702,7 +713,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:39.993Z",
-      "updatedAt": "2026-04-23T02:29:39.993Z",
+      "updatedAt": "2026-04-23T08:07:40.164Z",
       "externalId": "67d2942b20bfb32c83e4435c",
       "clientId": "5bf304911dc9c338cd2a6851",
       "clientCode": "10099",
@@ -721,7 +732,11 @@
         "5d08cd453223db10bee36699",
         "5ba782f7de6a4f7dc94ae87d"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 10,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 180000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "d9b971ae-15a9-490d-a2d1-de292c51b5bb",
@@ -848,9 +863,9 @@
       "contractNo": "10-25-628-02",
       "startDate": "2025-05-01",
       "endDate": "2026-04-30",
-      "allocatedManDays": 0,
+      "allocatedManDays": 20,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 20,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -859,7 +874,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.003Z",
-      "updatedAt": "2026-04-23T02:29:40.003Z",
+      "updatedAt": "2026-04-23T08:07:47.025Z",
       "externalId": "680604c253d35f7424dd1463",
       "clientId": "5ce7672b2a218835acf14b2b",
       "clientCode": "10147",
@@ -878,7 +893,11 @@
         "5d08cd453223db10bee36699",
         "5ba782f7de6a4f7dc94ae87d"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 20,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 360000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "01d7a629-1368-4034-9e4b-df4f45d1bba6",
@@ -888,9 +907,9 @@
       "contractNo": "10-25-761-02",
       "startDate": "2025-07-01",
       "endDate": "2026-06-30",
-      "allocatedManDays": 0,
+      "allocatedManDays": 5,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 5,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -899,7 +918,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.007Z",
-      "updatedAt": "2026-04-23T02:29:40.007Z",
+      "updatedAt": "2026-04-23T08:07:53.195Z",
       "externalId": "68495757e8985725c66657b6",
       "clientId": "5f7400f37723c21e48411893",
       "clientCode": "10216",
@@ -918,7 +937,11 @@
         "6552df10986f582feef383b2",
         "5ba782f7de6a4f7dc94ae87d"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 0,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 85000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "a93d8ca7-a439-4b67-b7d4-0b15836fb711",
@@ -928,9 +951,9 @@
       "contractNo": "10-25-756-02",
       "startDate": "2025-06-02",
       "endDate": "2026-06-01",
-      "allocatedManDays": 0,
+      "allocatedManDays": 13.200000000000001,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 13.200000000000001,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -939,7 +962,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.010Z",
-      "updatedAt": "2026-04-23T02:29:40.010Z",
+      "updatedAt": "2026-04-23T08:08:02.113Z",
       "externalId": "684beaeeaf1bbe236dc7bdaa",
       "clientId": "5f73fbfd7723c21e48411865",
       "clientCode": "10215",
@@ -958,7 +981,10 @@
         "6552df10986f582feef383b2",
         "5ba782f7de6a4f7dc94ae87d"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 150000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "b3be729e-24f0-4a30-9a7d-b597ec56b526",
@@ -968,9 +994,9 @@
       "contractNo": "10-25-142-02-1",
       "startDate": "2025-08-14",
       "endDate": "2026-08-13",
-      "allocatedManDays": 0,
+      "allocatedManDays": 440,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 440,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -979,7 +1005,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.013Z",
-      "updatedAt": "2026-04-23T02:29:40.013Z",
+      "updatedAt": "2026-04-23T08:08:13.187Z",
       "externalId": "687ef5bd1590447f40ac9cc9",
       "clientId": "666ba3bfa309dc4652a0aac9",
       "clientCode": "10372",
@@ -998,7 +1024,11 @@
         "5d08cd453223db10bee36699",
         "5ba782f7de6a4f7dc94ae87d"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 440,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 6000000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "08aa8ad7-e80a-4648-8c65-3846dc86f6dd",
@@ -1084,9 +1114,9 @@
       "contractNo": "I-1040-26-01-01",
       "startDate": "2026-01-01",
       "endDate": "2026-12-31",
-      "allocatedManDays": 0,
+      "allocatedManDays": 105,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 105,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -1095,7 +1125,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.025Z",
-      "updatedAt": "2026-04-23T02:29:40.025Z",
+      "updatedAt": "2026-04-23T08:08:19.446Z",
       "externalId": "695b8cad7c230858d7f82f58",
       "clientId": "601a96044275d014644fea5e",
       "clientCode": "10229",
@@ -1114,7 +1144,10 @@
         "6552df10986f582feef383b2",
         "5ba782f7de6a4f7dc94ae881"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "b33d9f87-8d6b-4e14-b3f5-32996ff3f210",
@@ -1124,9 +1157,9 @@
       "contractNo": "P-0061-26-02-40-SP",
       "startDate": "2026-01-01",
       "endDate": "2026-12-31",
-      "allocatedManDays": 0,
+      "allocatedManDays": 10,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 10,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -1135,7 +1168,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.027Z",
-      "updatedAt": "2026-04-23T02:29:40.027Z",
+      "updatedAt": "2026-04-23T08:08:25.714Z",
       "externalId": "695ba4fcb1c0022e8e6e49b0",
       "clientId": "639968c2a8ffd1551aed5c8f",
       "clientCode": "10311",
@@ -1153,7 +1186,11 @@
         "6552df10986f582feef383b2",
         "5ba782f7de6a4f7dc94ae881"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 10,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 160000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "ee9f23e0-f6e9-407e-b389-897049d51db0",
@@ -1174,7 +1211,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.030Z",
-      "updatedAt": "2026-04-23T02:29:40.030Z",
+      "updatedAt": "2026-04-23T08:08:33.808Z",
       "externalId": "695f630e0e15773b6fa0ac23",
       "clientId": "62fda71f685ab218aa9858c1",
       "clientCode": "10289",
@@ -1191,7 +1228,10 @@
         "6552df10986f582feef383b2",
         "5ba782f7de6a4f7dc94ae88a"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "5e5f30cc-a5a9-4ea0-9e22-7f1ba3803963",
@@ -1201,9 +1241,9 @@
       "contractNo": "P-0007-26-03-40-SP",
       "startDate": "2026-01-15",
       "endDate": "2027-01-14",
-      "allocatedManDays": 0,
+      "allocatedManDays": 20,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 20,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -1212,7 +1252,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.036Z",
-      "updatedAt": "2026-04-23T02:29:40.036Z",
+      "updatedAt": "2026-04-23T08:08:41.511Z",
       "externalId": "6964aed10e8caf0b1e8a7e9a",
       "clientId": "5c02a0019c7654210b083154",
       "clientCode": "10113",
@@ -1230,7 +1270,11 @@
         "6552df10986f582feef383b2",
         "5ba782f7de6a4f7dc94ae87d"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 20,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 360000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "6b2304de-a8f8-4d7f-849c-6720e99a23d2",
@@ -1251,7 +1295,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.039Z",
-      "updatedAt": "2026-04-23T02:29:40.039Z",
+      "updatedAt": "2026-04-23T08:08:48.386Z",
       "externalId": "6967a2321b00b007ce0c3242",
       "clientId": "63f588e27b766c1dd1d0c2ef",
       "clientCode": "10327",
@@ -1269,7 +1313,10 @@
         "5ba782f7de6a4f7dc94ae87d",
         "5ba782f7de6a4f7dc94ae88a"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "d258d845-ad1a-4d26-8495-26f109c783bb",
@@ -1290,7 +1337,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.042Z",
-      "updatedAt": "2026-04-23T02:29:40.042Z",
+      "updatedAt": "2026-04-23T08:08:55.508Z",
       "externalId": "697082647eb527066b075a15",
       "clientId": "639968c2a8ffd1551aed5c8f",
       "clientCode": "10311",
@@ -1307,7 +1354,10 @@
         "5e831be99eee7874b7fd39d4",
         "6552df10986f582feef383b2"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "99a3b1ef-7afc-4d66-9785-92755d5cb1c6",
@@ -1396,9 +1446,9 @@
       "contractNo": "P-0049-26-01-40-SP",
       "startDate": "2026-01-01",
       "endDate": "2026-12-31",
-      "allocatedManDays": 0,
+      "allocatedManDays": 10,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 10,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -1407,7 +1457,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.051Z",
-      "updatedAt": "2026-04-23T02:29:40.051Z",
+      "updatedAt": "2026-04-23T08:09:04.008Z",
       "externalId": "699800207a6ffc53c6e6bd90",
       "clientId": "5f7400f37723c21e48411893",
       "clientCode": "10216",
@@ -1426,7 +1476,11 @@
         "6969db4ccdcb6a40a34f6668",
         "6969dbd2cdcb6a40a34f669e"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 10,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 170000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "ca62b25e-aef4-4a61-8944-03e5d78f4de7",
@@ -1436,9 +1490,9 @@
       "contractNo": "P-0017-26-03-40-SP",
       "startDate": "2026-04-01",
       "endDate": "2027-03-31",
-      "allocatedManDays": 0,
+      "allocatedManDays": 20,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 20,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -1447,7 +1501,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.054Z",
-      "updatedAt": "2026-04-23T02:29:40.054Z",
+      "updatedAt": "2026-04-23T08:09:11.236Z",
       "externalId": "699d67c1e0819a527ecf136b",
       "clientId": "5bf304911dc9c338cd2a6815",
       "clientCode": "10039",
@@ -1467,7 +1521,11 @@
         "6552df10986f582feef383b2",
         "5ba782f7de6a4f7dc94ae87d"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 20,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 360000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "e326b52c-129e-432d-805b-2c78710c5dd3",
@@ -1488,7 +1546,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.057Z",
-      "updatedAt": "2026-04-23T02:29:40.057Z",
+      "updatedAt": "2026-04-23T08:09:14.704Z",
       "externalId": "69afc8eea32cce2960a313bd",
       "clientId": "5ce7675ddc7aef35ca7652a3",
       "clientCode": "10148",
@@ -1507,7 +1565,10 @@
         "6552df10986f582feef383b2",
         "5ba782f7de6a4f7dc94ae881"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "231f9eba-23f0-4cde-b105-bdc4ae5838a8",
@@ -1517,9 +1578,9 @@
       "contractNo": "P-0172-26-01-40-SP",
       "startDate": "2026-05-01",
       "endDate": "2028-04-29",
-      "allocatedManDays": 0,
+      "allocatedManDays": 150,
       "usedManDays": 0,
-      "remainingManDays": 0,
+      "remainingManDays": 150,
       "status": "active",
       "alertSettings": {
         "enabled": false,
@@ -1528,7 +1589,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T02:29:40.060Z",
-      "updatedAt": "2026-04-23T02:29:40.060Z",
+      "updatedAt": "2026-04-23T08:09:18.511Z",
       "externalId": "69c5d2937b4c226eee9ebbe5",
       "clientId": "5bf304911dc9c338cd2a67fb",
       "clientCode": "10013",
@@ -1548,7 +1609,11 @@
         "5ba782f7de6a4f7dc94ae87d",
         "6552df10986f582feef383b2"
       ],
-      "canEditInKawari": true
+      "canEditInKawari": true,
+      "overrideTotalResourceMandays": 150,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 2155000,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "8a8e3432-bb71-4220-acb5-6b79acdc0ec4",
@@ -1561,7 +1626,7 @@
       "allocatedManDays": 0,
       "usedManDays": 0,
       "remainingManDays": 0,
-      "status": "active",
+      "status": "inactive",
       "alertSettings": {
         "enabled": false,
         "daysBeforeExpiry": 30,
@@ -1569,7 +1634,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T04:00:39.980Z",
-      "updatedAt": "2026-04-23T04:00:39.980Z",
+      "updatedAt": "2026-04-23T08:06:32.097Z",
       "externalId": "5bf3044a1dc9c338cd2a67d7",
       "clientId": "5bf303308e8ba738aa1af335",
       "clientCode": "10001",
@@ -1592,7 +1657,10 @@
         "5ba782f7de6a4f7dc94ae8b9",
         "5ba782f7de6a4f7dc94ae897"
       ],
-      "canEditInKawari": false
+      "canEditInKawari": false,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "cbf7d549-813f-4ed9-8157-e756d3fea46b",
@@ -1605,7 +1673,7 @@
       "allocatedManDays": 0,
       "usedManDays": 0,
       "remainingManDays": 0,
-      "status": "active",
+      "status": "inactive",
       "alertSettings": {
         "enabled": false,
         "daysBeforeExpiry": 30,
@@ -1613,7 +1681,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T04:00:39.984Z",
-      "updatedAt": "2026-04-23T04:00:39.984Z",
+      "updatedAt": "2026-04-23T08:06:32.104Z",
       "externalId": "5bf3044a1dc9c338cd2a67d8",
       "clientId": "5bf303308e8ba738aa1af335",
       "clientCode": "10001",
@@ -1631,7 +1699,10 @@
         "5d08cd453223db10bee36699",
         "5ba782f8de6a4f7dc94ae922"
       ],
-      "canEditInKawari": false
+      "canEditInKawari": false,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "81c5d40f-b110-4f12-a175-2f7fdfaacb51",
@@ -1644,7 +1715,7 @@
       "allocatedManDays": 0,
       "usedManDays": 0,
       "remainingManDays": 0,
-      "status": "active",
+      "status": "inactive",
       "alertSettings": {
         "enabled": false,
         "daysBeforeExpiry": 30,
@@ -1652,7 +1723,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T04:00:39.986Z",
-      "updatedAt": "2026-04-23T04:00:39.986Z",
+      "updatedAt": "2026-04-23T08:06:32.109Z",
       "externalId": "5bf3044a1dc9c338cd2a67d9",
       "clientId": "5bf303308e8ba738aa1af335",
       "clientCode": "10001",
@@ -1675,7 +1746,10 @@
         "5ba782f7de6a4f7dc94ae8ab",
         "5ba782f7de6a4f7dc94ae8b9"
       ],
-      "canEditInKawari": false
+      "canEditInKawari": false,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "035caa89-bd93-436e-9879-0f12a02189f8",
@@ -1688,7 +1762,7 @@
       "allocatedManDays": 0,
       "usedManDays": 0,
       "remainingManDays": 0,
-      "status": "active",
+      "status": "inactive",
       "alertSettings": {
         "enabled": false,
         "daysBeforeExpiry": 30,
@@ -1696,7 +1770,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T04:00:39.989Z",
-      "updatedAt": "2026-04-23T04:00:39.989Z",
+      "updatedAt": "2026-04-23T08:06:32.114Z",
       "externalId": "5bf3044a1dc9c338cd2a67da",
       "clientId": "5bf303308e8ba738aa1af335",
       "clientCode": "10001",
@@ -1719,7 +1793,10 @@
         "5ba782f7de6a4f7dc94ae8ab",
         "5ba782f7de6a4f7dc94ae8b9"
       ],
-      "canEditInKawari": false
+      "canEditInKawari": false,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "bdc93e0f-e5c4-49d0-8835-1992dfab54e2",
@@ -1732,7 +1809,7 @@
       "allocatedManDays": 0,
       "usedManDays": 0,
       "remainingManDays": 0,
-      "status": "active",
+      "status": "inactive",
       "alertSettings": {
         "enabled": false,
         "daysBeforeExpiry": 30,
@@ -1740,7 +1817,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T04:00:39.992Z",
-      "updatedAt": "2026-04-23T04:00:39.992Z",
+      "updatedAt": "2026-04-23T08:06:32.118Z",
       "externalId": "5bf3044a1dc9c338cd2a67db",
       "clientId": "5bf303308e8ba738aa1af335",
       "clientCode": "10001",
@@ -1763,7 +1840,10 @@
         "5ba782f7de6a4f7dc94ae8ab",
         "5ba782f7de6a4f7dc94ae8b9"
       ],
-      "canEditInKawari": false
+      "canEditInKawari": false,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "b1466d1f-db99-4360-9c1e-f1d7b3fdd3f9",
@@ -1776,7 +1856,7 @@
       "allocatedManDays": 0,
       "usedManDays": 0,
       "remainingManDays": 0,
-      "status": "active",
+      "status": "inactive",
       "alertSettings": {
         "enabled": false,
         "daysBeforeExpiry": 30,
@@ -1784,7 +1864,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T04:00:39.995Z",
-      "updatedAt": "2026-04-23T04:00:39.995Z",
+      "updatedAt": "2026-04-23T08:06:32.126Z",
       "externalId": "5bf3044a1dc9c338cd2a67dc",
       "clientId": "5bf303308e8ba738aa1af335",
       "clientCode": "10001",
@@ -1807,7 +1887,10 @@
         "5ba782f7de6a4f7dc94ae8ab",
         "5ba782f7de6a4f7dc94ae8b9"
       ],
-      "canEditInKawari": false
+      "canEditInKawari": false,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "b952b4ee-bd2a-41ab-a886-6f3cd4849680",
@@ -1820,7 +1903,7 @@
       "allocatedManDays": 0,
       "usedManDays": 0,
       "remainingManDays": 0,
-      "status": "active",
+      "status": "inactive",
       "alertSettings": {
         "enabled": false,
         "daysBeforeExpiry": 30,
@@ -1828,7 +1911,7 @@
         "recipients": []
       },
       "createdAt": "2026-04-23T04:00:39.997Z",
-      "updatedAt": "2026-04-23T04:00:39.997Z",
+      "updatedAt": "2026-04-23T08:06:32.130Z",
       "externalId": "5bf3044a1dc9c338cd2a67dd",
       "clientId": "5bf303308e8ba738aa1af335",
       "clientCode": "10001",
@@ -1851,7 +1934,10 @@
         "5ba782f7de6a4f7dc94ae8ab",
         "5ba782f7de6a4f7dc94ae8b9"
       ],
-      "canEditInKawari": false
+      "canEditInKawari": false,
+      "totalManDays": 0,
+      "projectServiceContractPrice": 0,
+      "projectOtherServiceContractPrice": 0
     },
     {
       "id": "84e2c033-23b4-42d0-a192-49f939b24f05",

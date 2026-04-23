@@ -130,7 +130,7 @@ export async function createProjectAccount(
     usedManDays,
     remainingManDays: calculateRemaining(allocatedManDays, usedManDays),
 
-    status: "active",
+    status: input.status ?? "active",
     note: input.note,
 
     alertSettings: normalizeAlertSettings(input.alertSettings),
@@ -140,6 +140,7 @@ export async function createProjectAccount(
     createdAt: nowIsoDateTime(),
     updatedAt: nowIsoDateTime(),
 
+    // Kawari mapping fields
     externalId: input.externalId,
     clientId: input.clientId,
     clientCode: input.clientCode,
@@ -149,6 +150,12 @@ export async function createProjectAccount(
     primaryProjectManagerId: input.primaryProjectManagerId,
     projectManagerIds: input.projectManagerIds,
     canEditInKawari: input.canEditInKawari,
+
+    // Kawari detail fields
+    overrideTotalResourceMandays: input.overrideTotalResourceMandays,
+    totalManDays: input.totalManDays,
+    projectServiceContractPrice: input.projectServiceContractPrice,
+    projectOtherServiceContractPrice: input.projectOtherServiceContractPrice,
   };
 
   items.push(newItem);
