@@ -12,11 +12,13 @@ import {
   addIssue,
   findIssueById,
   listIssues,
+  saveIssues,
   updateIssue,
 } from "./issue.repository";
 import {
   appendIssueHistory,
   appendManyIssueHistory,
+  type IssueHistoryItem,
 } from "./issue-history.repository";
 import { createIssueSchema, updateIssueSchema } from "./issue.schemas";
 import type {
@@ -25,6 +27,8 @@ import type {
   IssueFilters,
   IssuePolicySettings,
   IssueSummary,
+  ServiceNowIssueSyncInput,
+  ServiceNowIssueSyncResult,
   UpdateIssueInput,
 } from "./issue.types";
 
@@ -37,6 +41,13 @@ type IssueActor = {
 type IssueHistoryActor = {
   actorId: string;
   actorName: string;
+};
+
+type ServiceNowIssueBulkSyncResult = {
+  created: number;
+  updated: number;
+  skipped: number;
+  items: Issue[];
 };
 
 const SETTINGS_FILE_PATH = path.join(process.cwd(), "data", "settings.json");
@@ -293,7 +304,11 @@ function sanitizeSlaHours(value: unknown, fallback: number): number {
 }
 
 async function getIssuePolicySettings(): Promise<IssuePolicySettings> {
-  const data = await readJsonFile<Record<string, unknown>>(SETTINGS_FILE_PATH, {});
+  const data = await readJsonFile<Record<string, unknown>>(
+    SETTINGS_FILE_PATH,
+    {},
+  );
+
   const issue =
     typeof data.issue === "object" && data.issue !== null
       ? (data.issue as Record<string, unknown>)
@@ -331,7 +346,10 @@ async function getIssuePolicySettings(): Promise<IssuePolicySettings> {
   };
 }
 
-async function appendCreatedHistory(issue: Issue, actor: IssueActor): Promise<void> {
+async function appendCreatedHistory(
+  issue: Issue,
+  actor: IssueActor,
+): Promise<void> {
   await appendIssueHistory({
     issueId: issue.id,
     action: "created",
@@ -341,11 +359,11 @@ async function appendCreatedHistory(issue: Issue, actor: IssueActor): Promise<vo
   });
 }
 
-async function appendUpdatedHistory(
+function buildUpdatedHistoryInputs(
   before: Issue,
   after: Issue,
   actor?: IssueHistoryActor,
-): Promise<void> {
+): Array<Omit<IssueHistoryItem, "id">> {
   const actorId = actor?.actorId ?? "system";
   const actorName = actor?.actorName ?? "System";
   const timestamp = nowIsoDateTime();
@@ -367,9 +385,7 @@ async function appendUpdatedHistory(
     "cancelledAt",
   ];
 
-  const historyInputs: Array<
-    Omit<import("./issue-history.repository").IssueHistoryItem, "id">
-  > = [];
+  const historyInputs: Array<Omit<IssueHistoryItem, "id">> = [];
 
   if (before.status !== after.status) {
     historyInputs.push({
@@ -404,15 +420,89 @@ async function appendUpdatedHistory(
     });
   }
 
+  return historyInputs;
+}
+
+async function appendUpdatedHistory(
+  before: Issue,
+  after: Issue,
+  actor?: IssueHistoryActor,
+): Promise<void> {
+  const historyInputs = buildUpdatedHistoryInputs(before, after, actor);
   await appendManyIssueHistory(historyInputs);
+}
+
+function getServiceNowIssueTimestamps(
+  input: ServiceNowIssueSyncInput,
+): Pick<Issue, "resolvedAt" | "closedAt" | "cancelledAt"> {
+  if (input.status === "cancelled") {
+    return {
+      resolvedAt: undefined,
+      closedAt: undefined,
+      cancelledAt: input.closedAt ?? input.openedAt,
+    };
+  }
+
+  if (input.status === "closed") {
+    const closedAt = input.closedAt ?? input.openedAt;
+
+    return {
+      resolvedAt: closedAt,
+      closedAt,
+      cancelledAt: undefined,
+    };
+  }
+
+  if (input.status === "resolved") {
+    return {
+      resolvedAt: input.closedAt ?? input.openedAt,
+      closedAt: input.closedAt,
+      cancelledAt: undefined,
+    };
+  }
+
+  return {
+    resolvedAt: undefined,
+    closedAt: input.closedAt,
+    cancelledAt: undefined,
+  };
+}
+
+function buildServiceNowComparableIssue(item: Issue) {
+  return {
+    issueNo: item.issueNo,
+    title: item.title,
+    description: item.description,
+    customerName: item.customerName,
+    projectAccountId: item.projectAccountId,
+    projectAccountCode: item.projectAccountCode,
+    projectAccountName: item.projectAccountName,
+    status: item.status,
+    priority: item.priority,
+    source: item.source,
+    ownerName: item.ownerName,
+    ownerEmail: item.ownerEmail,
+    externalTicketNo: item.externalTicketNo,
+    openedAt: item.openedAt,
+    resolvedAt: item.resolvedAt,
+    closedAt: item.closedAt,
+    cancelledAt: item.cancelledAt,
+  };
+}
+
+function getServiceNowIssueKey(ticketNo: string): string {
+  return ticketNo.trim().toLowerCase();
 }
 
 export async function getIssuePolicySettingsService(): Promise<IssuePolicySettings> {
   return getIssuePolicySettings();
 }
 
-export async function listIssuesService(filters?: IssueFilters): Promise<Issue[]> {
+export async function listIssuesService(
+  filters?: IssueFilters,
+): Promise<Issue[]> {
   const items = await listIssues();
+
   return sortIssues(items.filter((item) => matchesIssueFilters(item, filters)));
 }
 
@@ -424,6 +514,7 @@ export async function getIssueSummaryService(
   filters?: IssueFilters,
 ): Promise<IssueSummary> {
   const items = await listIssuesService(filters);
+
   return buildIssueSummary(items);
 }
 
@@ -449,7 +540,9 @@ export async function createIssueService(
   let projectAccountName: string | undefined;
 
   if (parsed.data.projectAccountId) {
-    const projectAccount = await getProjectAccountById(parsed.data.projectAccountId);
+    const projectAccount = await getProjectAccountById(
+      parsed.data.projectAccountId,
+    );
 
     if (!projectAccount) {
       throw new ValidationError("Selected project account was not found.");
@@ -529,7 +622,9 @@ export async function updateIssueService(
       projectAccountCode = undefined;
       projectAccountName = undefined;
     } else {
-      const projectAccount = await getProjectAccountById(parsed.data.projectAccountId);
+      const projectAccount = await getProjectAccountById(
+        parsed.data.projectAccountId,
+      );
 
       if (!projectAccount) {
         throw new ValidationError("Selected project account was not found.");
@@ -606,4 +701,189 @@ export async function updateIssueService(
   await appendUpdatedHistory(existing, saved, actor);
 
   return saved;
+}
+
+export async function upsertServiceNowIssueService(
+  input: ServiceNowIssueSyncInput,
+): Promise<ServiceNowIssueSyncResult> {
+  const result = await upsertServiceNowIssuesBulkService([input]);
+
+  return (
+    result.items[0]
+      ? {
+          item: result.items[0],
+          action:
+            result.created > 0
+              ? "created"
+              : result.updated > 0
+                ? "updated"
+                : "skipped",
+        }
+      : {
+          item: (await listIssues())[0],
+          action: "skipped",
+        }
+  );
+}
+
+export async function upsertServiceNowIssuesBulkService(
+  inputs: ServiceNowIssueSyncInput[],
+): Promise<ServiceNowIssueBulkSyncResult> {
+  if (inputs.length === 0) {
+    return {
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      items: [],
+    };
+  }
+
+  const allItems = await listIssues();
+  const timestamp = nowIsoDateTime();
+
+  const existingServiceNowMap = new Map<string, Issue>();
+
+  for (const item of allItems) {
+    if (item.source !== "servicenow" || !item.externalTicketNo) {
+      continue;
+    }
+
+    existingServiceNowMap.set(
+      getServiceNowIssueKey(item.externalTicketNo),
+      item,
+    );
+  }
+
+  const incomingMap = new Map<string, ServiceNowIssueSyncInput>();
+
+  for (const input of inputs) {
+    const ticketNo = input.externalTicketNo.trim();
+
+    if (!ticketNo) {
+      continue;
+    }
+
+    incomingMap.set(getServiceNowIssueKey(ticketNo), input);
+  }
+
+  const nextItems = [...allItems];
+  const changedItems: Issue[] = [];
+  const historyInputs: Array<Omit<IssueHistoryItem, "id">> = [];
+
+  let created = 0;
+  let updated = 0;
+  let skipped = inputs.length - incomingMap.size;
+
+  for (const input of incomingMap.values()) {
+    const ticketNo = input.externalTicketNo.trim();
+    const key = getServiceNowIssueKey(ticketNo);
+    const existing = existingServiceNowMap.get(key);
+    const serviceNowTimestamps = getServiceNowIssueTimestamps(input);
+
+    if (!existing) {
+      const issue: Issue = {
+        id: generateId(),
+        issueNo: input.issueNo,
+        title: input.title,
+        description: input.description,
+        customerName: input.customerName,
+        projectAccountId: input.projectAccountId,
+        projectAccountCode: input.projectAccountCode,
+        projectAccountName: input.projectAccountName,
+        status: input.status,
+        priority: input.priority,
+        source: "servicenow",
+        ownerName: input.ownerName,
+        ownerEmail: input.ownerEmail,
+        reporterId: "system",
+        reporterName: "ServiceNow Import",
+        reporterEmail: undefined,
+        externalTicketNo: ticketNo,
+        openedAt: input.openedAt,
+        resolvedAt: serviceNowTimestamps.resolvedAt,
+        closedAt: serviceNowTimestamps.closedAt,
+        cancelledAt: serviceNowTimestamps.cancelledAt,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+
+      nextItems.push(issue);
+      changedItems.push(issue);
+      existingServiceNowMap.set(key, issue);
+      created += 1;
+
+      historyInputs.push({
+        issueId: issue.id,
+        action: "created",
+        actorId: "system",
+        actorName: "ServiceNow Import",
+        createdAt: timestamp,
+      });
+
+      continue;
+    }
+
+    const nextIssue: Issue = {
+      ...existing,
+      issueNo: input.issueNo,
+      title: input.title,
+      description: input.description,
+      customerName: input.customerName,
+      projectAccountId: input.projectAccountId,
+      projectAccountCode: input.projectAccountCode,
+      projectAccountName: input.projectAccountName,
+      status: input.status,
+      priority: input.priority,
+      source: "servicenow",
+      ownerName: input.ownerName,
+      ownerEmail: input.ownerEmail,
+      externalTicketNo: ticketNo,
+      openedAt: input.openedAt,
+      resolvedAt: serviceNowTimestamps.resolvedAt,
+      closedAt: serviceNowTimestamps.closedAt,
+      cancelledAt: serviceNowTimestamps.cancelledAt,
+      updatedAt: timestamp,
+    };
+
+    const beforeComparable = buildServiceNowComparableIssue(existing);
+    const afterComparable = buildServiceNowComparableIssue(nextIssue);
+
+    if (JSON.stringify(beforeComparable) === JSON.stringify(afterComparable)) {
+      skipped += 1;
+      changedItems.push(existing);
+      continue;
+    }
+
+    const index = nextItems.findIndex((item) => item.id === existing.id);
+
+    if (index >= 0) {
+      nextItems[index] = nextIssue;
+    }
+
+    existingServiceNowMap.set(key, nextIssue);
+    changedItems.push(nextIssue);
+    updated += 1;
+
+    historyInputs.push(
+      ...buildUpdatedHistoryInputs(existing, nextIssue, {
+        actorId: "system",
+        actorName: "ServiceNow Import",
+      }),
+    );
+  }
+
+  if (created > 0 || updated > 0) {
+    await saveIssues(nextItems);
+  }
+
+  if (historyInputs.length > 0) {
+    await appendManyIssueHistory(historyInputs);
+  }
+
+  return {
+    created,
+    updated,
+    skipped,
+    items: changedItems,
+  };
 }

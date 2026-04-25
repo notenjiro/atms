@@ -3,7 +3,13 @@ import { dataPaths } from "@/lib/fs/paths";
 import { NotFoundError } from "@/lib/errors";
 
 import { issueSchema } from "./issue.schemas";
-import type { Issue, IssuePriority, IssueSource, IssueStatus, IssuesFile } from "./issue.types";
+import type {
+  Issue,
+  IssuePriority,
+  IssueSource,
+  IssueStatus,
+  IssuesFile,
+} from "./issue.types";
 
 const DEFAULT_ISSUES_FILE: IssuesFile = {
   items: [],
@@ -162,6 +168,12 @@ async function writeIssuesFile(data: IssuesFile): Promise<void> {
 export async function listIssues(): Promise<Issue[]> {
   const data = await readIssuesFile();
   return data.items;
+}
+
+export async function saveIssues(items: Issue[]): Promise<void> {
+  await writeIssuesFile({
+    items,
+  });
 }
 
 export async function findIssueById(id: string): Promise<Issue | null> {

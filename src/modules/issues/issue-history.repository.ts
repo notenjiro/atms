@@ -2,7 +2,12 @@ import { readJsonFile, writeJsonFile } from "@/lib/fs/json-store";
 import { dataPaths } from "@/lib/fs/paths";
 import { generateId } from "@/lib/id";
 
-export type IssueHistoryAction = "created" | "updated" | "status_changed";
+export type IssueHistoryAction =
+  | "created"
+  | "updated"
+  | "status_changed"
+  | "worklog_added"
+  | "comment_added";
 
 export type IssueHistoryItem = {
   id: string;
@@ -24,6 +29,16 @@ const DEFAULT_ISSUE_HISTORY_FILE: IssueHistoryFile = {
   items: [],
 };
 
+function isIssueHistoryAction(value: unknown): value is IssueHistoryAction {
+  return (
+    value === "created" ||
+    value === "updated" ||
+    value === "status_changed" ||
+    value === "worklog_added" ||
+    value === "comment_added"
+  );
+}
+
 function isIssueHistoryItem(value: unknown): value is IssueHistoryItem {
   if (!value || typeof value !== "object") {
     return false;
@@ -34,7 +49,7 @@ function isIssueHistoryItem(value: unknown): value is IssueHistoryItem {
   return (
     typeof item.id === "string" &&
     typeof item.issueId === "string" &&
-    typeof item.action === "string" &&
+    isIssueHistoryAction(item.action) &&
     typeof item.actorId === "string" &&
     typeof item.actorName === "string" &&
     typeof item.createdAt === "string"

@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import IssueDetailModal from "@/components/issues/issue-detail-modal";
+import type { IssuePolicySettings } from "@/modules/issues/issue.types";
 
 export type IssueTableItem = {
   id: string;
@@ -32,11 +33,22 @@ export type IssueTableItem = {
 
 type IssuesTableProps = {
   issues: IssueTableItem[];
+  policy?: Pick<
+    IssuePolicySettings,
+    "slaHoursLow" | "slaHoursMedium" | "slaHoursHigh" | "slaHoursCritical"
+  >;
   defaultFilters?: {
     status?: "open" | "resolved";
     owner?: "unassigned";
     aging?: "gte7";
   };
+};
+
+const DEFAULT_POLICY = {
+  slaHoursLow: 72,
+  slaHoursMedium: 24,
+  slaHoursHigh: 8,
+  slaHoursCritical: 4,
 };
 
 const STATUS_OPTIONS = [
@@ -53,7 +65,9 @@ const PRIORITY_OPTIONS: Array<IssueTableItem["priority"] | "all"> = [
   "critical",
 ];
 
-function formatDate(value: string) {
+const PAGE_SIZE_OPTIONS = [25, 50, 100, 200] as const;
+
+function formatDate(value?: string) {
   if (!value) return "-";
 
   const date = new Date(value);
@@ -72,6 +86,7 @@ function formatStatusLabel(status: IssueTableItem["status"]) {
 }
 
 function formatPriorityLabel(priority: IssueTableItem["priority"]) {
+  if (priority === "critical") return "Very High";
   return priority.charAt(0).toUpperCase() + priority.slice(1);
 }
 
@@ -102,13 +117,13 @@ function getStatusBadgeClass(status: IssueTableItem["status"]) {
 function getPriorityBadgeClass(priority: IssueTableItem["priority"]) {
   switch (priority) {
     case "low":
-      return "border-slate-200 bg-slate-50 text-slate-700";
+      return "border-sky-200 bg-sky-50 text-sky-700";
     case "medium":
-      return "border-blue-200 bg-blue-50 text-blue-700";
+      return "border-yellow-200 bg-yellow-50 text-yellow-700";
     case "high":
-      return "border-amber-200 bg-amber-50 text-amber-700";
+      return "border-red-200 bg-red-50 text-red-700";
     case "critical":
-      return "border-rose-200 bg-rose-50 text-rose-700";
+      return "border-purple-200 bg-purple-50 text-purple-700";
     default:
       return "border-slate-200 bg-slate-50 text-slate-700";
   }
@@ -123,44 +138,89 @@ function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${className}`}
+      className={`inline-flex min-w-fit items-center rounded-full border px-2.5 py-1 text-xs font-medium ${className}`}
     >
       {label}
     </span>
   );
 }
 
-function getAgingInDays(openedAt: string) {
-  const opened = new Date(openedAt);
+function isClosedLikeStatus(status: IssueTableItem["status"]) {
+  return status === "resolved" || status === "closed" || status === "cancelled";
+}
+
+function getAgingInHours(issue: IssueTableItem) {
+  const opened = new Date(issue.openedAt);
 
   if (Number.isNaN(opened.getTime())) {
     return null;
   }
 
-  const now = new Date();
-  const diffMs = now.getTime() - opened.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const endValue =
+    issue.closedAt ||
+    issue.resolvedAt ||
+    issue.cancelledAt ||
+    undefined;
 
-  return diffDays < 0 ? 0 : diffDays;
+  const endDate = endValue ? new Date(endValue) : new Date();
+
+  if (Number.isNaN(endDate.getTime())) {
+    return null;
+  }
+
+  const diffMs = endDate.getTime() - opened.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+  return diffHours < 0 ? 0 : diffHours;
+}
+
+function getAgingInDays(issue: IssueTableItem) {
+  const hours = getAgingInHours(issue);
+
+  if (hours === null) {
+    return null;
+  }
+
+  return Math.floor(hours / 24);
+}
+
+function getSlaHours(
+  priority: IssueTableItem["priority"],
+  policy?: IssuesTableProps["policy"],
+) {
+  const activePolicy = policy ?? DEFAULT_POLICY;
+
+  switch (priority) {
+    case "low":
+      return activePolicy.slaHoursLow;
+    case "medium":
+      return activePolicy.slaHoursMedium;
+    case "high":
+      return activePolicy.slaHoursHigh;
+    case "critical":
+      return activePolicy.slaHoursCritical;
+    default:
+      return activePolicy.slaHoursLow;
+  }
 }
 
 function getAgingBadgeClass(
-  days: number | null,
-  status: IssueTableItem["status"],
+  issue: IssueTableItem,
+  policy?: IssuesTableProps["policy"],
 ) {
-  if (days === null) {
+  const hours = getAgingInHours(issue);
+
+  if (hours === null) {
     return "border-slate-200 bg-slate-50 text-slate-700";
   }
 
-  if (status === "resolved" || status === "closed" || status === "cancelled") {
-    return "border-slate-200 bg-slate-100 text-slate-700";
+  const slaHours = getSlaHours(issue.priority, policy);
+
+  if (hours > slaHours) {
+    return "border-red-200 bg-red-50 text-red-700 font-semibold";
   }
 
-  if (days >= 14) {
-    return "border-rose-200 bg-rose-50 text-rose-700";
-  }
-
-  if (days >= 7) {
+  if (hours >= slaHours * 0.7) {
     return "border-amber-200 bg-amber-50 text-amber-700";
   }
 
@@ -185,6 +245,7 @@ function formatAgingLabel(days: number | null) {
 
 export default function IssuesTable({
   issues,
+  policy,
   defaultFilters,
 }: IssuesTableProps) {
   const [search, setSearch] = useState("");
@@ -197,6 +258,10 @@ export default function IssuesTable({
   const [owner, setOwner] = useState<string>(
     defaultFilters?.owner === "unassigned" ? "" : "all",
   );
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZE_OPTIONS)[number]>(
+    50,
+  );
+  const [page, setPage] = useState(1);
   const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
 
   const ownerOptions = useMemo(() => {
@@ -215,6 +280,8 @@ export default function IssuesTable({
     const keyword = search.trim().toLowerCase();
 
     return issues.filter((issue) => {
+      const agingDays = getAgingInDays(issue);
+
       const matchesSearch =
         keyword.length === 0 ||
         issue.issueNo.toLowerCase().includes(keyword) ||
@@ -228,7 +295,7 @@ export default function IssuesTable({
         (status === "open" &&
           ["open", "in_progress", "pending"].includes(issue.status)) ||
         (status === "resolved" &&
-          ["resolved", "closed"].includes(issue.status));
+          ["resolved", "closed", "cancelled"].includes(issue.status));
 
       const matchesPriority = priority === "all" || issue.priority === priority;
 
@@ -242,7 +309,7 @@ export default function IssuesTable({
       const matchesAging =
         defaultFilters?.aging === "gte7"
           ? ["open", "in_progress", "pending"].includes(issue.status) &&
-            (getAgingInDays(issue.openedAt) ?? 0) >= 7
+            (agingDays ?? 0) >= 7
           : true;
 
       return (
@@ -255,12 +322,31 @@ export default function IssuesTable({
     });
   }, [defaultFilters?.aging, issues, owner, priority, search, status]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredIssues.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredIssues.length);
+
+  const paginatedIssues = filteredIssues.slice(startIndex, endIndex);
+
+  useEffect(() => {
+    setPage(1);
+  }, [owner, pageSize, priority, search, status]);
+
   function openIssue(issueId: string) {
     setSelectedIssueId(issueId);
   }
 
   function closeIssueModal() {
     setSelectedIssueId(null);
+  }
+
+  function goToPreviousPage() {
+    setPage((current) => Math.max(1, current - 1));
+  }
+
+  function goToNextPage() {
+    setPage((current) => Math.min(totalPages, current + 1));
   }
 
   return (
@@ -343,25 +429,47 @@ export default function IssuesTable({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-sm">
+          <table className="min-w-[1720px] border-collapse text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="border-b px-4 py-3 font-medium">Issue No</th>
-                <th className="border-b px-4 py-3 font-medium">Title</th>
-                <th className="border-b px-4 py-3 font-medium">Customer</th>
-                <th className="border-b px-4 py-3 font-medium">Owner</th>
-                <th className="border-b px-4 py-3 font-medium">Status</th>
-                <th className="border-b px-4 py-3 font-medium">Priority</th>
-                <th className="border-b px-4 py-3 font-medium">Aging</th>
-                <th className="border-b px-4 py-3 font-medium">Source</th>
-                <th className="border-b px-4 py-3 font-medium">Reporter</th>
-                <th className="border-b px-4 py-3 font-medium">Opened</th>
-                <th className="border-b px-4 py-3 font-medium">Updated</th>
+                <th className="w-[120px] border-b px-3 py-3 font-medium">
+                  Issue No
+                </th>
+                <th className="w-[460px] border-b px-3 py-3 font-medium">
+                  Title
+                </th>
+                <th className="w-[250px] border-b px-3 py-3 font-medium">
+                  Customer
+                </th>
+                <th className="w-[210px] border-b px-3 py-3 font-medium">
+                  Owner
+                </th>
+                <th className="w-[130px] border-b px-3 py-3 font-medium">
+                  Status
+                </th>
+                <th className="w-[120px] border-b px-3 py-3 font-medium">
+                  Priority
+                </th>
+                <th className="w-[110px] border-b px-3 py-3 font-medium">
+                  Aging
+                </th>
+                <th className="w-[120px] border-b px-3 py-3 font-medium">
+                  Source
+                </th>
+                <th className="w-[170px] border-b px-3 py-3 font-medium">
+                  Reporter
+                </th>
+                <th className="w-[130px] border-b px-3 py-3 font-medium">
+                  Opened
+                </th>
+                <th className="w-[130px] border-b px-3 py-3 font-medium">
+                  Closed
+                </th>
               </tr>
             </thead>
 
             <tbody>
-              {filteredIssues.length === 0 ? (
+              {paginatedIssues.length === 0 ? (
                 <tr>
                   <td
                     colSpan={11}
@@ -371,29 +479,38 @@ export default function IssuesTable({
                   </td>
                 </tr>
               ) : (
-                filteredIssues.map((issue) => {
-                  const agingDays = getAgingInDays(issue.openedAt);
+                paginatedIssues.map((issue) => {
+                  const agingDays = getAgingInDays(issue);
 
                   return (
                     <tr key={issue.id} className="hover:bg-gray-50">
-                      <td className="border-b px-4 py-3 font-medium">
+                      <td className="border-b px-3 py-3 font-medium">
                         <button
                           type="button"
                           onClick={() => openIssue(issue.id)}
-                          className="inline-flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-800 transition hover:bg-gray-100 hover:border-gray-300 active:scale-[0.98]"
+                          className="inline-flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-800 transition hover:border-gray-300 hover:bg-gray-100 active:scale-[0.98]"
                         >
                           {issue.issueNo}
                         </button>
                       </td>
 
-                      <td className="border-b px-4 py-3 text-gray-900">
-                        {issue.title}
+                      <td className="border-b px-3 py-3 text-gray-900">
+                        <div
+                          className="line-clamp-2 max-w-[430px] leading-5"
+                          title={issue.title}
+                        >
+                          {issue.title}
+                        </div>
                       </td>
 
-                      <td className="border-b px-4 py-3">{issue.customerName}</td>
+                      <td className="border-b px-3 py-3">
+                        <div className="max-w-[230px] leading-5">
+                          {issue.customerName}
+                        </div>
+                      </td>
 
-                      <td className="border-b px-4 py-3">
-                        <div className="min-w-[140px]">
+                      <td className="border-b px-3 py-3">
+                        <div className="max-w-[190px] leading-5">
                           <div className="text-sm text-gray-900">
                             {issue.ownerName || "-"}
                           </div>
@@ -403,41 +520,47 @@ export default function IssuesTable({
                         </div>
                       </td>
 
-                      <td className="border-b px-4 py-3">
+                      <td className="border-b px-3 py-3">
                         <Badge
                           label={formatStatusLabel(issue.status)}
                           className={getStatusBadgeClass(issue.status)}
                         />
                       </td>
 
-                      <td className="border-b px-4 py-3">
+                      <td className="border-b px-3 py-3">
                         <Badge
                           label={formatPriorityLabel(issue.priority)}
                           className={getPriorityBadgeClass(issue.priority)}
                         />
                       </td>
 
-                      <td className="border-b px-4 py-3">
+                      <td className="border-b px-3 py-3">
                         <Badge
                           label={formatAgingLabel(agingDays)}
-                          className={getAgingBadgeClass(agingDays, issue.status)}
+                          className={getAgingBadgeClass(issue, policy)}
                         />
                       </td>
 
-                      <td className="border-b px-4 py-3">
+                      <td className="border-b px-3 py-3">
                         {formatSourceLabel(issue.source)}
                       </td>
 
-                      <td className="border-b px-4 py-3">
-                        {issue.reporterName || "-"}
+                      <td className="border-b px-3 py-3">
+                        <div className="max-w-[150px] leading-5">
+                          {issue.reporterName || "-"}
+                        </div>
                       </td>
 
-                      <td className="border-b px-4 py-3">
-                        {formatDate(issue.openedAt)}
+                      <td className="border-b px-3 py-3">
+                        <div className="min-w-[100px]">
+                          {formatDate(issue.openedAt)}
+                        </div>
                       </td>
 
-                      <td className="border-b px-4 py-3">
-                        {formatDate(issue.updatedAt)}
+                      <td className="border-b px-3 py-3">
+                        <div className="min-w-[100px]">
+                          {formatDate(issue.closedAt)}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -445,6 +568,54 @@ export default function IssuesTable({
               )}
             </tbody>
           </table>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t p-4 md:flex-row md:items-center md:justify-between">
+          <div className="text-sm text-gray-500">
+            Showing {filteredIssues.length === 0 ? 0 : startIndex + 1}-
+            {endIndex} of {filteredIssues.length}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-sm text-gray-600">Rows per page</label>
+            <select
+              value={pageSize}
+              onChange={(event) =>
+                setPageSize(
+                  Number(event.target.value) as (typeof PAGE_SIZE_OPTIONS)[number],
+                )
+              }
+              className="rounded-lg border px-3 py-2 text-sm"
+            >
+              {PAGE_SIZE_OPTIONS.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+
+            <div className="text-sm text-gray-600">
+              Page {safePage} of {totalPages}
+            </div>
+
+            <button
+              type="button"
+              onClick={goToPreviousPage}
+              disabled={safePage <= 1}
+              className="rounded-lg border px-3 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
+
+            <button
+              type="button"
+              onClick={goToNextPage}
+              disabled={safePage >= totalPages}
+              className="rounded-lg border px-3 py-2 text-sm font-medium text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 

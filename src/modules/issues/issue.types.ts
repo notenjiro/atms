@@ -71,6 +71,28 @@ export type UpdateIssueInput = Partial<{
   externalTicketNo: string;
 }>;
 
+export type ServiceNowIssueSyncInput = {
+  issueNo: string;
+  title: string;
+  description: string;
+  customerName: string;
+  projectAccountId?: string;
+  projectAccountCode?: string;
+  projectAccountName?: string;
+  status: IssueStatus;
+  priority: IssuePriority;
+  ownerName?: string;
+  ownerEmail?: string;
+  externalTicketNo: string;
+  openedAt: string;
+  closedAt?: string;
+};
+
+export type ServiceNowIssueSyncResult = {
+  item: Issue;
+  action: "created" | "updated" | "skipped";
+};
+
 export type IssueFilters = Partial<{
   search: string;
   status: IssueStatus;
