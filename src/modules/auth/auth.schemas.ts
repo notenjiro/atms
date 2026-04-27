@@ -16,6 +16,7 @@ export const userSchema = z.object({
   role: appRoleSchema,
   status: recordStatusSchema,
   phone: z.string().trim().optional(),
+  managerId: z.string().trim().min(1).optional(),
   createdAt: z.string().min(1),
   updatedAt: z.string().min(1),
 });

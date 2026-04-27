@@ -1,0 +1,18 @@
+[
+  {
+    "id": "kim-admin-default",
+    "atmsUserId": "ff82db01-13e7-4dd4-a405-327eeca6a58e",
+    "atmsEmail": "admin@test.com",
+    "displayName": "System Administrator",
+    "kawariUserId": "6552df10986f582feef383b2",
+    "kawariApproverIds": [
+      "5ba782f8de6a4f7dc94ae8ff"
+    ],
+    "syncMode": "approver",
+    "canSyncTeamCalendar": true,
+    "isDefaultSyncIdentity": true,
+    "enabled": true,
+    "createdAt": "2026-04-26T00:00:00.000Z",
+    "updatedAt": "2026-04-26T00:00:00.000Z"
+  }
+]

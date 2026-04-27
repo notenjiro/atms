@@ -185,7 +185,39 @@ function getTicketNo(row: RawRow): string {
   );
 }
 
+function getBusinessService(row: RawRow): string | undefined {
+  return normalizeOptional(
+    getRowValue(row, [
+      "Business service",
+      "Business Service",
+      "BusinessService",
+      "Business_service",
+    ]),
+  );
+}
+
+function extractProjectCodeFromBusinessService(
+  businessService: string | undefined,
+): string | undefined {
+  if (!businessService) {
+    return undefined;
+  }
+
+  const [projectCode] = businessService.split(":");
+  const normalized = projectCode?.trim();
+
+  return normalized || undefined;
+}
+
 function getProjectCode(row: RawRow): string {
+  const businessService = getBusinessService(row);
+  const projectCodeFromBusinessService =
+    extractProjectCodeFromBusinessService(businessService);
+
+  if (projectCodeFromBusinessService) {
+    return projectCodeFromBusinessService;
+  }
+
   return normalizeText(
     getRowValue(row, [
       "Project Code",
@@ -201,14 +233,14 @@ function getProjectCode(row: RawRow): string {
 }
 
 function getProjectName(row: RawRow): string | undefined {
+  const businessService = getBusinessService(row);
+
+  if (businessService) {
+    return businessService;
+  }
+
   return normalizeOptional(
-    getRowValue(row, [
-      "Project Name",
-      "Project",
-      "Title",
-      "Short description",
-      "Short Description",
-    ]),
+    getRowValue(row, ["Project Name", "Project", "Business service"]),
   );
 }
 

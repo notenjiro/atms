@@ -39,6 +39,7 @@ export async function createUser(input: {
   role: User["role"];
   status?: User["status"];
   phone?: string;
+  managerId?: string;
 }): Promise<SafeUser> {
   const now = nowIsoDateTime();
 
@@ -52,6 +53,7 @@ export async function createUser(input: {
     role: input.role,
     status: input.status ?? "active",
     phone: input.phone?.trim() || undefined,
+    managerId: input.managerId?.trim() || undefined,
     createdAt: now,
     updatedAt: now,
   };

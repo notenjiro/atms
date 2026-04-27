@@ -18,17 +18,17 @@ import {
 
 import type {
   ReportAgingBucket,
-  ReportCustomerPoint,
+  ReportProjectPoint,
   ReportTrendPoint,
 } from "@/modules/report/report.service";
 
 type ReportChartsProps = {
   trend: ReportTrendPoint[];
   aging: ReportAgingBucket[];
-  topCustomers: ReportCustomerPoint[];
+  byProject: ReportProjectPoint[];
 };
 
-const AGING_COLORS = ["#fde68a", "#fcd34d", "#f59e0b", "#d97706"];
+const AGING_COLORS = ["#bfdbfe", "#fde68a", "#fdba74", "#fecaca"];
 
 function ChartCard({
   title,
@@ -51,16 +51,14 @@ function ChartCard({
   );
 }
 
-export function ReportCharts({
-  trend,
-  aging,
-  topCustomers,
-}: ReportChartsProps) {
+export function ReportCharts({ trend, aging, byProject }: ReportChartsProps) {
+  const topProjects = byProject.slice(0, 8);
+
   return (
     <div className="grid gap-6 xl:grid-cols-2">
       <ChartCard
         title="30-Day Ticket Trend"
-        description="Daily opened versus resolved movement."
+        description="Daily opened versus closed movement."
       >
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={trend}>
@@ -79,13 +77,34 @@ export function ReportCharts({
             />
             <Line
               type="monotone"
-              dataKey="resolved"
-              name="Resolved"
-              stroke="#8b5cf6"
+              dataKey="closed"
+              name="Closed"
+              stroke="#2563eb"
               strokeWidth={2.5}
               dot={false}
             />
           </LineChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      <ChartCard
+        title="Ticket by Project"
+        description="Top project/account workload from the selected filter."
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={topProjects}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="projectCode"
+              stroke="#64748b"
+              tick={{ fontSize: 11 }}
+            />
+            <YAxis allowDecimals={false} stroke="#64748b" tick={{ fontSize: 12 }} />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="totalIssues" name="Tickets" fill="#2563eb" />
+            <Bar dataKey="breachedIssues" name="SLA Breached" fill="#dc2626" />
+          </BarChart>
         </ResponsiveContainer>
       </ChartCard>
 

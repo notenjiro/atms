@@ -7,6 +7,7 @@ export interface User extends BaseEntity {
   role: AppRole;
   status: RecordStatus;
   phone?: string;
+  managerId?: string;
 }
 
 export interface SafeUser {
@@ -15,6 +16,7 @@ export interface SafeUser {
   fullName: string;
   role: AppRole;
   status: RecordStatus;
+  managerId?: string;
 }
 
 export interface LoginRequest {
@@ -45,5 +47,6 @@ export function toSafeUser(user: User): SafeUser {
     fullName: user.fullName,
     role: user.role,
     status: user.status,
+    managerId: user.managerId,
   };
 }

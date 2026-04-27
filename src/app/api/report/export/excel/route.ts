@@ -1,121 +1,190 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 
-import { getReportAnalyticsService } from "@/modules/report/report.service";
+import {
+  buildReportFilter,
+  getReportAnalyticsService,
+} from "@/modules/report/report.service";
 
-export async function GET() {
-  const analytics = await getReportAnalyticsService();
+function buildFilter(req: NextRequest) {
+  const params = req.nextUrl.searchParams;
 
+  return buildReportFilter({
+    projectAccountId: params.get("projectAccountId"),
+    projectCode: params.get("projectCode"),
+    fromDate: params.get("fromDate"),
+    toDate: params.get("toDate"),
+    statuses: params.getAll("status"),
+  });
+}
+
+function formatNumber(value: number, digits = 2): number {
+  return Number(value.toFixed(digits));
+}
+
+function applyHeaderStyle(sheet: ExcelJS.Worksheet) {
+  const headerRow = sheet.getRow(1);
+  headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+
+  headerRow.eachCell((cell) => {
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF173B7A" },
+    };
+    cell.alignment = {
+      vertical: "middle",
+      horizontal: "center",
+    };
+    cell.border = {
+      bottom: { style: "thin", color: { argb: "FFCBD5E1" } },
+    };
+  });
+}
+
+function autosize(sheet: ExcelJS.Worksheet) {
+  sheet.columns.forEach((column) => {
+    let maxLength = 12;
+
+    column.eachCell?.({ includeEmpty: true }, (cell) => {
+      const value = cell.value;
+      const text =
+        value === null || value === undefined
+          ? ""
+          : typeof value === "object"
+            ? JSON.stringify(value)
+            : String(value);
+
+      maxLength = Math.max(maxLength, Math.min(text.length + 2, 60));
+    });
+
+    column.width = maxLength;
+  });
+}
+
+export async function GET(req: NextRequest) {
+  const analytics = await getReportAnalyticsService(buildFilter(req));
   const workbook = new ExcelJS.Workbook();
+
   workbook.creator = "ATMS";
   workbook.created = new Date();
 
   const summarySheet = workbook.addWorksheet("Summary");
   summarySheet.columns = [
-    { header: "Metric", key: "metric", width: 28 },
-    { header: "Value", key: "value", width: 18 },
-    { header: "Notes", key: "notes", width: 36 },
+    { header: "Metric", key: "metric", width: 30 },
+    { header: "Value", key: "value", width: 20 },
   ];
 
-  summarySheet.addRow({
-    metric: "Total Issues",
-    value: analytics.summary.totalIssues,
-    notes: "All issues in the current store",
-  });
-  summarySheet.addRow({
-    metric: "Open Issues",
-    value: analytics.summary.openIssues,
-    notes: "Open, in progress, and pending",
-  });
-  summarySheet.addRow({
-    metric: "Resolved Issues",
-    value: analytics.summary.resolvedIssues,
-    notes: "Resolved and closed",
-  });
-  summarySheet.addRow({
-    metric: "Critical Issues",
-    value: analytics.summary.criticalIssues,
-    notes: "Priority marked as critical",
-  });
-  summarySheet.addRow({
-    metric: "Unassigned Open Issues",
-    value: analytics.summary.unassignedOpenIssues,
-    notes: "Open issues without owner",
-  });
-  summarySheet.addRow({
-    metric: "Avg Resolution (days)",
-    value: analytics.sla.avgResolutionDays ?? "-",
-    notes: "Average time to close issue",
-  });
-  summarySheet.addRow({
-    metric: "Within SLA",
-    value: analytics.sla.resolvedWithinSLA,
-    notes: "Resolved within SLA target",
-  });
-  summarySheet.addRow({
-    metric: "Breached SLA",
-    value: analytics.sla.resolvedBreachedSLA,
-    notes: "Resolved but exceeded SLA",
-  });
-  summarySheet.addRow({
-    metric: "Open Overdue",
-    value: analytics.sla.openOverdue,
-    notes: "Open issues beyond SLA",
-  });
+  summarySheet.addRows([
+    { metric: "Total Issues", value: analytics.summary.totalIssues },
+    { metric: "Open Issues", value: analytics.summary.openIssues },
+    { metric: "Closed Issues", value: analytics.summary.closedIssues },
+    { metric: "SLA %", value: analytics.sla.slaPercent },
+    { metric: "Open Overdue", value: analytics.sla.openOverdue },
+    {
+      metric: "Average Resolution Hours",
+      value: analytics.sla.avgResolutionHours ?? "-",
+    },
+    {
+      metric: "Billable Hours",
+      value: formatNumber(analytics.manDay.totalBillableHours),
+    },
+    {
+      metric: "Billable MD",
+      value: formatNumber(analytics.manDay.totalBillableManDays),
+    },
+  ]);
 
-  const trendSheet = workbook.addWorksheet("Trend");
-  trendSheet.columns = [
-    { header: "Date", key: "date", width: 16 },
-    { header: "Opened", key: "opened", width: 14 },
-    { header: "Resolved", key: "resolved", width: 14 },
+  const projectSheet = workbook.addWorksheet("Project");
+  projectSheet.columns = [
+    { header: "Project Code", key: "projectCode", width: 30 },
+    { header: "Project Name", key: "projectName", width: 50 },
+    { header: "Tickets", key: "tickets", width: 10 },
+    { header: "Open", key: "open", width: 10 },
+    { header: "Closed", key: "closed", width: 10 },
+    { header: "Breached", key: "breached", width: 10 },
+    { header: "Billable Hours", key: "hours", width: 16 },
+    { header: "MD", key: "md", width: 10 },
   ];
-  analytics.trend.forEach((item) => {
-    trendSheet.addRow(item);
-  });
 
-  const agingSheet = workbook.addWorksheet("Aging");
-  agingSheet.columns = [
-    { header: "Bucket", key: "label", width: 18 },
-    { header: "Count", key: "count", width: 14 },
-  ];
-  analytics.aging.forEach((item) => {
-    agingSheet.addRow(item);
-  });
+  projectSheet.addRows(
+    analytics.byProject.map((project) => ({
+      projectCode: project.projectCode || "-",
+      projectName: project.projectName,
+      tickets: project.totalIssues,
+      open: project.openIssues,
+      closed: project.closedIssues,
+      breached: project.breachedIssues,
+      hours: formatNumber(project.billableHours),
+      md: formatNumber(project.billableManDays),
+    })),
+  );
 
-  const customersSheet = workbook.addWorksheet("Top Customers");
-  customersSheet.columns = [
-    { header: "Customer", key: "customerName", width: 36 },
-    { header: "Issues", key: "count", width: 14 },
+  const personSheet = workbook.addWorksheet("Person");
+  personSheet.columns = [
+    { header: "Person", key: "person", width: 32 },
+    { header: "Tickets", key: "tickets", width: 12 },
+    { header: "Billable Hours", key: "hours", width: 16 },
+    { header: "Billable MD", key: "md", width: 14 },
   ];
-  analytics.topCustomers.forEach((item) => {
-    customersSheet.addRow(item);
-  });
+
+  personSheet.addRows(
+    analytics.byPerson.map((person) => ({
+      person: person.personName,
+      tickets: person.totalTickets,
+      hours: formatNumber(person.billableHours),
+      md: formatNumber(person.billableManDays),
+    })),
+  );
+
+  const ticketSheet = workbook.addWorksheet("Tickets");
+  ticketSheet.columns = [
+    { header: "Issue No", key: "issueNo", width: 20 },
+    { header: "External No", key: "external", width: 20 },
+    { header: "Project Code", key: "project", width: 30 },
+    { header: "Project Name", key: "projectName", width: 48 },
+    { header: "Customer", key: "customer", width: 28 },
+    { header: "Title", key: "title", width: 60 },
+    { header: "Status", key: "status", width: 15 },
+    { header: "Priority", key: "priority", width: 15 },
+    { header: "Aging (h)", key: "aging", width: 12 },
+    { header: "SLA (h)", key: "sla", width: 12 },
+    { header: "Breached", key: "breach", width: 12 },
+    { header: "Billable Hours", key: "hours", width: 16 },
+    { header: "MD", key: "md", width: 10 },
+  ];
+
+  ticketSheet.addRows(
+    analytics.ticketLog.map((ticket) => ({
+      issueNo: ticket.issueNo,
+      external: ticket.externalTicketNo || "-",
+      project: ticket.projectCode || "-",
+      projectName: ticket.projectName || "-",
+      customer: ticket.customerName,
+      title: ticket.title,
+      status: ticket.status,
+      priority: ticket.priority,
+      aging: ticket.agingHours ?? "-",
+      sla: ticket.slaHours,
+      breach: ticket.slaBreached ? "YES" : "NO",
+      hours: formatNumber(ticket.billableHours),
+      md: formatNumber(ticket.billableManDays),
+    })),
+  );
 
   for (const sheet of workbook.worksheets) {
-    const headerRow = sheet.getRow(1);
-    headerRow.font = { bold: true };
-    headerRow.eachCell((cell) => {
-      cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFFCE7F3" },
-      };
-      cell.border = {
-        bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
-      };
-    });
+    applyHeaderStyle(sheet);
+    autosize(sheet);
+    sheet.views = [{ state: "frozen", ySplit: 1 }];
   }
 
   const buffer = await workbook.xlsx.writeBuffer();
 
-  // ✅ แปลง Buffer -> Uint8Array (compatible กับ NextResponse)
-  const uint8 = new Uint8Array(buffer as ArrayBuffer);
-
-  return new NextResponse(uint8, {
+  return new NextResponse(buffer as unknown as BodyInit, {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": 'attachment; filename="atms-report.xlsx"',
+      "Content-Disposition": `attachment; filename="report.xlsx"`,
     },
   });
 }

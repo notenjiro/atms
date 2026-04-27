@@ -10,6 +10,8 @@ export const dataPaths = {
   issueHistory: path.join(dataDirectory, "issue-history.json"),
   projectAccounts: path.join(dataDirectory, "project-accounts.json"),
   leaveRequests: path.join(dataDirectory, "leave-requests.json"),
+  kawariLeaveCache: path.join(dataDirectory, "kawari-leave-cache.json"),
+  kawariIdentityMap: path.join(dataDirectory, "kawari-identity-map.json"),
   timesheets: path.join(dataDirectory, "timesheets.json"),
   timesheetMonths: path.join(dataDirectory, "timesheet-months.json"),
   timesheetProjects: path.join(dataDirectory, "timesheet-projects.json"),

@@ -1,0 +1,8 @@
+{
+  "status": "failed",
+  "syncedAt": null,
+  "failedAt": "2026-04-26T13:03:30.972Z",
+  "errorMessage": "Kawari request timed out.",
+  "mode": "team",
+  "requests": []
+}
